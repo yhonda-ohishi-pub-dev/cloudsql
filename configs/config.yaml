@@ -1,0 +1,17 @@
+# CloudSQL Migration Tool Configuration
+
+# Database connection settings
+host: localhost
+port: 5432
+user: postgres
+password: postgres
+database: myapp
+sslmode: disable
+
+# CloudSQL settings (for production)
+cloudsql:
+  enabled: false
+  project: your-gcp-project
+  region: asia-northeast1
+  instance: your-instance-name
+  private_ip: false
