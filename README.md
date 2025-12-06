@@ -521,6 +521,39 @@ gcloud storage ls -l gs://BUCKET_NAME/
 
 マルチテナント対応版（organization_id + RLS）。
 
+## テスト
+
+### RLS統合テスト（ローカルDocker）
+
+```bash
+# Dockerで統合テスト実行
+make test-integration
+```
+
+### CloudSQL認証テスト
+
+IAMユーザーがパスワード認証を拒否することを確認するテスト。
+
+```bash
+# Cloud SQL Proxyを起動
+make proxy-start
+# または手動: ./cloud-sql-proxy.exe cloudsql-sv:asia-northeast1:postgres-prod --port=5433
+
+# 認証テスト実行
+TEST_POSTGRES_PASSWORD='<postgres_password>' make test-cloudsql-auth
+
+# Proxy停止
+make proxy-stop
+```
+
+**テスト内容:**
+
+| テスト | 期待結果 |
+|--------|---------|
+| IAMユーザー + パスワード | ❌ 拒否 |
+| postgres + 正しいパスワード | ✅ 成功 |
+| postgres + 間違ったパスワード | ❌ 拒否 |
+
 ## ライセンス
 
 MIT

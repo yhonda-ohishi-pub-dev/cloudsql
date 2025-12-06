@@ -147,6 +147,8 @@ func getConfig() *database.Config {
 		port = 3306
 	}
 
+	fmt.Printf("DEBUG: cloudsql.enabled = %v\n", viper.GetBool("cloudsql.enabled"))
+
 	return &database.Config{
 		Host:         viper.GetString("host"),
 		Port:         port,

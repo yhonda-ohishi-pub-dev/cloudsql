@@ -3,7 +3,8 @@
 .PHONY: pg-up pg-down pg-version mysql-up mysql-down mysql-version
 .PHONY: docker-up docker-down docker-reset
 .PHONY: cloudsql-pg-stop cloudsql-pg-start cloudsql-mysql-stop cloudsql-mysql-start
-.PHONY: test-rls test-integration test-all
+.PHONY: test-rls test-integration test-all test-cloudsql-auth
+.PHONY: proxy-start proxy-stop
 
 # Build settings
 BINARY_NAME=migrate
@@ -125,6 +126,13 @@ test-rls:
 test-integration: docker-reset pg-up test-rls
 	@echo "Integration tests completed"
 
+# Run CloudSQL authentication tests (requires proxy running on port 5433)
+# Usage: make test-cloudsql-auth TEST_POSTGRES_PASSWORD=<password>
+test-cloudsql-auth:
+	@echo "Running CloudSQL authentication tests..."
+	@echo "Note: Requires Cloud SQL Proxy running on port 5433"
+	go test -v ./tests/...
+
 #
 # CloudSQL commands (requires gcloud auth)
 #
@@ -162,6 +170,20 @@ cloudsql-mysql-stop:
 
 cloudsql-mysql-start:
 	gcloud sql instances patch $(MYSQL_INSTANCE) --activation-policy=ALWAYS --project=$(GCP_PROJECT)
+
+#
+# Cloud SQL Proxy commands
+#
+
+# Start Cloud SQL Proxy for postgres-prod (port 5433)
+proxy-start:
+	@echo "Starting Cloud SQL Proxy on port 5433..."
+	./cloud-sql-proxy.exe cloudsql-sv:asia-northeast1:postgres-prod --port=5433 &
+
+# Stop Cloud SQL Proxy
+proxy-stop:
+	@echo "Stopping Cloud SQL Proxy..."
+	-taskkill /IM cloud-sql-proxy.exe /F 2>/dev/null || pkill -f cloud-sql-proxy || true
 
 # Help
 help:
@@ -204,3 +226,10 @@ help:
 	@echo "  make cloudsql-pg-start   - Start CloudSQL PostgreSQL instance"
 	@echo "  make cloudsql-mysql-stop - Stop CloudSQL MySQL instance"
 	@echo "  make cloudsql-mysql-start- Start CloudSQL MySQL instance"
+	@echo ""
+	@echo "Cloud SQL Proxy:"
+	@echo "  make proxy-start         - Start Cloud SQL Proxy (port 5433)"
+	@echo "  make proxy-stop          - Stop Cloud SQL Proxy"
+	@echo ""
+	@echo "CloudSQL Auth Tests:"
+	@echo "  make test-cloudsql-auth  - Run authentication tests (requires proxy)"

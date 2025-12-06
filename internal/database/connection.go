@@ -146,14 +146,7 @@ func ConnectPostgres(ctx context.Context, cfg *Config) (*sql.DB, error) {
 // connectPostgresCloudSQL connects to PostgreSQL via CloudSQL Connector with IAM authentication
 func connectPostgresCloudSQL(ctx context.Context, cfg *Config) (*sql.DB, error) {
 	instanceConnName := cfg.CloudSQLInstanceConnectionName()
-
-	// Build DSN for pgx (no password - using IAM auth)
-	dsn := fmt.Sprintf(
-		"user=%s dbname=%s sslmode=disable host=%s",
-		cfg.User,
-		cfg.Database,
-		instanceConnName,
-	)
+	fmt.Printf("DEBUG: Connecting to CloudSQL instance: %s\n", instanceConnName)
 
 	// Use pgxv5 with CloudSQL connector and IAM authentication
 	var opts []cloudsqlconn.Option
@@ -168,6 +161,18 @@ func connectPostgresCloudSQL(ctx context.Context, cfg *Config) (*sql.DB, error) 
 		return nil, fmt.Errorf("failed to register cloudsql driver: %w", err)
 	}
 	_ = cleanup // Keep driver registered
+	fmt.Println("DEBUG: CloudSQL driver registered successfully")
+
+	// DSN format for pgxv5 CloudSQL connector
+	// Use keyword format as recommended by Cloud SQL Go Connector documentation
+	dsn := fmt.Sprintf(
+		"host=%s user=%s dbname=%s sslmode=disable",
+		instanceConnName,
+		cfg.User,
+		cfg.Database,
+	)
+	fmt.Printf("DEBUG: DSN = %s\n", dsn)
+	fmt.Printf("DEBUG: Opening with driver 'cloudsql-postgres'\n")
 
 	db, err := sql.Open("cloudsql-postgres", dsn)
 	if err != nil {

@@ -38,6 +38,7 @@ example/*
 configs/config.production.yaml
 configs/config.staging.yaml
 configs/*.dev.yaml
+configs/*.prod.yaml
 *.pem
 *.key
 credentials.json
