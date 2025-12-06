@@ -1,0 +1,68 @@
+-- Migration: dtakologs
+-- Database: PostgreSQL
+-- Description: デジタコログテーブル（車両運行記録）
+
+CREATE TABLE IF NOT EXISTS public.dtakologs (
+    __type TEXT NOT NULL,
+    "AddressDispC" TEXT,
+    "AddressDispP" TEXT,
+    "AllState" TEXT,
+    "AllStateEx" TEXT,
+    "AllStateFontColor" TEXT,
+    "AllStateFontColorIndex" INTEGER NOT NULL,
+    "AllStateRyoutColor" TEXT NOT NULL,
+    "BranchCD" INTEGER NOT NULL,
+    "BranchName" TEXT NOT NULL,
+    "ComuDateTime" TEXT,
+    "CurrentWorkCD" INTEGER NOT NULL,
+    "CurrentWorkName" TEXT,
+    "DataDateTime" TEXT DEFAULT '20/1/1 00:00',
+    "DataFilterType" INTEGER NOT NULL,
+    "DispFlag" INTEGER NOT NULL,
+    "DriverCD" INTEGER NOT NULL,
+    "DriverName" TEXT,
+    "EventVal" TEXT,
+    "GPSDirection" INTEGER NOT NULL,
+    "GPSEnable" INTEGER NOT NULL,
+    "GPSLatiAndLong" TEXT,
+    "GPSLatitude" INTEGER NOT NULL,
+    "GPSLongitude" INTEGER NOT NULL,
+    "GPSSatelliteNum" INTEGER NOT NULL,
+    "ODOMeter" TEXT,
+    "OperationState" INTEGER NOT NULL,
+    "ReciveEventType" INTEGER NOT NULL,
+    "RecivePacketType" INTEGER NOT NULL,
+    "ReciveTypeColorName" TEXT,
+    "ReciveTypeName" TEXT,
+    "ReciveWorkCD" INTEGER NOT NULL,
+    "Revo" INTEGER NOT NULL,
+    "SettingTemp" TEXT NOT NULL,
+    "SettingTemp1" TEXT NOT NULL,
+    "SettingTemp3" TEXT NOT NULL,
+    "SettingTemp4" TEXT NOT NULL,
+    "Speed" REAL NOT NULL,
+    "StartWorkDateTime" TEXT,
+    "State" TEXT,
+    "State1" TEXT,
+    "State2" TEXT,
+    "State3" TEXT,
+    "StateFlag" TEXT NOT NULL,
+    "SubDriverCD" INTEGER NOT NULL,
+    "Temp1" TEXT,
+    "Temp2" TEXT,
+    "Temp3" TEXT,
+    "Temp4" TEXT,
+    "TempState" INTEGER NOT NULL,
+    "VehicleCD" INTEGER NOT NULL,
+    "VehicleIconColor" TEXT,
+    "VehicleIconLabelForDatetime" TEXT,
+    "VehicleIconLabelForDriver" TEXT,
+    "VehicleIconLabelForVehicle" TEXT,
+    "VehicleName" TEXT NOT NULL,
+    PRIMARY KEY ("DataDateTime", "VehicleCD")
+);
+
+-- Indexes for common queries
+CREATE INDEX idx_dtakologs_vehicle_cd ON public.dtakologs("VehicleCD");
+CREATE INDEX idx_dtakologs_driver_cd ON public.dtakologs("DriverCD");
+CREATE INDEX idx_dtakologs_branch_cd ON public.dtakologs("BranchCD");
