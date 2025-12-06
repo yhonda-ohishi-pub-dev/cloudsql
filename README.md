@@ -433,6 +433,76 @@ gcloud projects add-iam-policy-binding PROJECT_ID \
 | `connection refused` | ネットワーク設定 | CloudSQL Connector経由で接続（直接接続は不可） |
 | `Access denied for user` | DB権限不足 | Cloud Shell経由でGRANT権限を付与 |
 
+## バックアップと復元
+
+### インスタンスの起動・停止
+
+```bash
+# 起動
+gcloud sql instances patch INSTANCE_NAME --activation-policy=ALWAYS --project=PROJECT_ID
+
+# 停止
+gcloud sql instances patch INSTANCE_NAME --activation-policy=NEVER --project=PROJECT_ID
+
+# 状態確認
+gcloud sql instances list --project=PROJECT_ID
+```
+
+### バックアップ（スナップショット方式）
+
+インスタンス全体のディスクスナップショットを取得。復元時はインスタンス再起動が必要。
+
+```bash
+# バックアップ作成
+gcloud sql backups create --instance=INSTANCE_NAME --project=PROJECT_ID
+
+# バックアップ一覧
+gcloud sql backups list --instance=INSTANCE_NAME --project=PROJECT_ID
+
+# バックアップから復元（同じインスタンスに上書き）
+gcloud sql backups restore BACKUP_ID --restore-instance=INSTANCE_NAME --project=PROJECT_ID
+
+# オペレーション状態確認
+gcloud sql operations list --instance=INSTANCE_NAME --project=PROJECT_ID --limit=1
+```
+
+### GCSエクスポート・インポート（SQLダンプ方式）
+
+SQLダンプファイルをGCSに保存/読み込み。インスタンス稼働中でも実行可能。
+
+```bash
+# GCSバケット作成（初回のみ）
+gcloud storage buckets create gs://BUCKET_NAME --location=asia-northeast1 --project=PROJECT_ID
+
+# CloudSQLサービスアカウントにバケットへの書き込み権限を付与
+SA_EMAIL=$(gcloud sql instances describe INSTANCE_NAME --project=PROJECT_ID --format="value(serviceAccountEmailAddress)")
+gcloud storage buckets add-iam-policy-binding gs://BUCKET_NAME \
+  --member=serviceAccount:$SA_EMAIL \
+  --role=roles/storage.objectAdmin
+
+# エクスポート（GCSへ）
+gcloud sql export sql INSTANCE_NAME gs://BUCKET_NAME/export.sql \
+  --database=DATABASE_NAME --project=PROJECT_ID
+
+# インポート（GCSから）
+gcloud sql import sql INSTANCE_NAME gs://BUCKET_NAME/export.sql \
+  --database=DATABASE_NAME --project=PROJECT_ID
+
+# GCSファイル一覧
+gcloud storage ls -l gs://BUCKET_NAME/
+```
+
+### バックアップ vs エクスポートの比較
+
+| 項目 | バックアップ | エクスポート (GCS) |
+|------|-------------|-------------------|
+| 方式 | ディスクスナップショット | SQLダンプ |
+| 対象 | インスタンス全体 | 指定したDB/テーブル |
+| 復元速度 | 遅い（再起動含む） | 速い |
+| 復元時 | インスタンス停止必要 | 稼働中でもOK |
+| ストレージ費用 | $0.08/GB/月 | $0.023/GB/月 (GCS Standard) |
+| 用途 | 災害復旧、完全復元 | データ移行、長期アーカイブ |
+
 ## ライセンス
 
 MIT

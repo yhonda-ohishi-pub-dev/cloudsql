@@ -2,6 +2,7 @@
 .PHONY: migrate-up migrate-down migrate-version migrate-create
 .PHONY: pg-up pg-down pg-version mysql-up mysql-down mysql-version
 .PHONY: docker-up docker-down
+.PHONY: cloudsql-pg-stop cloudsql-pg-start cloudsql-mysql-stop cloudsql-mysql-start
 
 # Build settings
 BINARY_NAME=migrate
@@ -122,6 +123,22 @@ cloudsql-mysql-up: build
 		--password=$(DB_PASSWORD) \
 		--database=$(DB_NAME) up
 
+#
+# CloudSQL instance start/stop commands
+#
+
+cloudsql-pg-stop:
+	gcloud sql instances patch $(PG_INSTANCE) --activation-policy=NEVER --project=$(GCP_PROJECT)
+
+cloudsql-pg-start:
+	gcloud sql instances patch $(PG_INSTANCE) --activation-policy=ALWAYS --project=$(GCP_PROJECT)
+
+cloudsql-mysql-stop:
+	gcloud sql instances patch $(MYSQL_INSTANCE) --activation-policy=NEVER --project=$(GCP_PROJECT)
+
+cloudsql-mysql-start:
+	gcloud sql instances patch $(MYSQL_INSTANCE) --activation-policy=ALWAYS --project=$(GCP_PROJECT)
+
 # Help
 help:
 	@echo "CloudSQL Migration Tool"
@@ -149,5 +166,11 @@ help:
 	@echo "  make mysql-create   - Create new MySQL migration"
 	@echo ""
 	@echo "CloudSQL (set GCP_PROJECT, GCP_REGION, etc.):"
-	@echo "  make cloudsql-pg-up    - Run migrations on CloudSQL PostgreSQL"
-	@echo "  make cloudsql-mysql-up - Run migrations on CloudSQL MySQL"
+	@echo "  make cloudsql-pg-up      - Run migrations on CloudSQL PostgreSQL"
+	@echo "  make cloudsql-mysql-up   - Run migrations on CloudSQL MySQL"
+	@echo ""
+	@echo "CloudSQL Instance Control:"
+	@echo "  make cloudsql-pg-stop    - Stop CloudSQL PostgreSQL instance"
+	@echo "  make cloudsql-pg-start   - Start CloudSQL PostgreSQL instance"
+	@echo "  make cloudsql-mysql-stop - Stop CloudSQL MySQL instance"
+	@echo "  make cloudsql-mysql-start- Start CloudSQL MySQL instance"
