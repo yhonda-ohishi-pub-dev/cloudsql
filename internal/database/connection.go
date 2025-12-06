@@ -18,6 +18,7 @@ type Config struct {
 	Host     string
 	Port     int
 	User     string
+	Password string
 	Database string
 	SSLMode  string
 
@@ -65,7 +66,18 @@ func (c *Config) PostgresDSN() string {
 		)
 	}
 
-	// Standard PostgreSQL connection string (IAM auth, no password)
+	// Standard PostgreSQL connection string
+	if c.Password != "" {
+		return fmt.Sprintf(
+			"host=%s port=%d user=%s password=%s dbname=%s sslmode=%s",
+			c.Host,
+			c.Port,
+			c.User,
+			c.Password,
+			c.Database,
+			c.SSLMode,
+		)
+	}
 	return fmt.Sprintf(
 		"host=%s port=%d user=%s dbname=%s sslmode=%s",
 		c.Host,
@@ -88,7 +100,17 @@ func (c *Config) MySQLDSN() string {
 		)
 	}
 
-	// Standard MySQL connection string (IAM auth, no password)
+	// Standard MySQL connection string
+	if c.Password != "" {
+		return fmt.Sprintf(
+			"%s:%s@tcp(%s:%d)/%s?parseTime=true",
+			c.User,
+			c.Password,
+			c.Host,
+			c.Port,
+			c.Database,
+		)
+	}
 	return fmt.Sprintf(
 		"%s@tcp(%s:%d)/%s?parseTime=true",
 		c.User,

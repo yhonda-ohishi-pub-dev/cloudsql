@@ -91,6 +91,7 @@ func init() {
 	rootCmd.PersistentFlags().String("host", "localhost", "database host")
 	rootCmd.PersistentFlags().Int("port", 5432, "database port")
 	rootCmd.PersistentFlags().String("user", "", "database user")
+	rootCmd.PersistentFlags().String("password", "", "database password (for local development)")
 	rootCmd.PersistentFlags().String("database", "", "database name")
 	rootCmd.PersistentFlags().String("sslmode", "disable", "SSL mode")
 
@@ -105,6 +106,7 @@ func init() {
 	viper.BindPFlag("host", rootCmd.PersistentFlags().Lookup("host"))
 	viper.BindPFlag("port", rootCmd.PersistentFlags().Lookup("port"))
 	viper.BindPFlag("user", rootCmd.PersistentFlags().Lookup("user"))
+	viper.BindPFlag("password", rootCmd.PersistentFlags().Lookup("password"))
 	viper.BindPFlag("database", rootCmd.PersistentFlags().Lookup("database"))
 	viper.BindPFlag("sslmode", rootCmd.PersistentFlags().Lookup("sslmode"))
 	viper.BindPFlag("cloudsql.enabled", rootCmd.PersistentFlags().Lookup("cloudsql"))
@@ -149,6 +151,7 @@ func getConfig() *database.Config {
 		Host:         viper.GetString("host"),
 		Port:         port,
 		User:         viper.GetString("user"),
+		Password:     viper.GetString("password"),
 		Database:     viper.GetString("database"),
 		SSLMode:      viper.GetString("sslmode"),
 		UseCloudSQL:  viper.GetBool("cloudsql.enabled"),
