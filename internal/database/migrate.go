@@ -4,6 +4,8 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"path/filepath"
+	"strings"
 
 	"github.com/golang-migrate/migrate/v4"
 	"github.com/golang-migrate/migrate/v4/database"
@@ -30,7 +32,13 @@ type Migrator struct {
 
 // NewMigrator creates a new Migrator instance
 func NewMigrator(db *sql.DB, dbType DBType, migrationsPath string) (*Migrator, error) {
-	sourceURL := fmt.Sprintf("file://%s", migrationsPath)
+	// Convert Windows backslashes to forward slashes for file:// URL
+	cleanPath := filepath.ToSlash(migrationsPath)
+	// Ensure absolute path for Windows compatibility
+	if !strings.HasPrefix(cleanPath, "/") && len(cleanPath) > 1 && cleanPath[1] == ':' {
+		cleanPath = "/" + cleanPath
+	}
+	sourceURL := fmt.Sprintf("file://%s", cleanPath)
 
 	var driver database.Driver
 	var err error

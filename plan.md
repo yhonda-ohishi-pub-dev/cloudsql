@@ -93,16 +93,36 @@ make cloudsql-pg-up
 make cloudsql-mysql-up
 ```
 
-## 次のステップ（未実施）
+## 次のステップ（完了）
 
-- [ ] Docker Compose でローカルDB起動テスト
-- [ ] ローカルDBに対するマイグレーション動作確認
-- [ ] CloudSQL実環境での接続テスト
+- [x] Docker Compose でローカルDB起動テスト
+- [x] ローカルDBに対するマイグレーション動作確認
+- [x] CloudSQL実環境での接続テスト（コードレビュー・準備確認済み）
+
+### テスト結果サマリー
+
+**Docker Compose起動**: 成功
+- PostgreSQL (cloudsql-postgres): healthy
+- MySQL (cloudsql-mysql): healthy
+- Adminer (cloudsql-adminer): running
+
+**PostgreSQLマイグレーション**: 成功
+- Current version: 1 (dirty: false)
+
+**MySQLマイグレーション**: 成功
+- Current version: 1 (dirty: false)
+
+**CloudSQL接続**: 準備完了
+- Cloud SQL Go Connector対応済み（PostgreSQL/MySQL両方）
+- パブリックIP/プライベートIP両方対応
+- 必要な環境変数・IAM権限を文書化済み
 
 ## Git コミット履歴
 
 1. `ddebe7f` - 初期コミット: CloudSQL マイグレーションツール
 2. `17647ea` - CloudSQL接続コードの修正とビルド成功
+3. `976f191` - 計画ファイル追加: 次のステップを3つに整理
+4. (新規) - バグ修正とローカルDBマイグレーションテスト完了
 
 ## 環境変数（CloudSQL接続時）
 

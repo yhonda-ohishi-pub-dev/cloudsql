@@ -11,5 +11,4 @@ CREATE TABLE IF NOT EXISTS users (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
--- Example: Create index
-CREATE INDEX idx_users_email ON users(email);
+-- Note: email already has unique index from UNIQUE constraint

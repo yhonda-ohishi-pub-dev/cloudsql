@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -192,10 +193,9 @@ func runMigration(action string) error {
 		return fmt.Errorf("failed to connect to database: %w", err)
 	}
 
-	sqlDB := db.(*interface{})
-	_ = sqlDB // placeholder
+	sqlDB := db.(*sql.DB)
 
-	migrator, err := database.NewMigrator(nil, dbTypeEnum, migrationsPath)
+	migrator, err := database.NewMigrator(sqlDB, dbTypeEnum, migrationsPath)
 	if err != nil {
 		return fmt.Errorf("failed to create migrator: %w", err)
 	}
