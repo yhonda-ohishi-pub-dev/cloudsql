@@ -5,6 +5,7 @@
 .PHONY: cloudsql-pg-stop cloudsql-pg-start cloudsql-mysql-stop cloudsql-mysql-start
 .PHONY: test-rls test-integration test-all test-cloudsql-auth
 .PHONY: proxy-start proxy-stop
+.PHONY: proto-gen proto-clean proto-lint
 
 # Build settings
 BINARY_NAME=migrate
@@ -34,6 +35,31 @@ clean:
 deps:
 	go mod download
 	go mod tidy
+
+#
+# Proto generation commands
+#
+
+# Generate protobuf code
+proto-gen:
+	@echo "Generating protobuf code..."
+	buf generate
+
+# Clean generated protobuf code
+proto-clean:
+	@echo "Cleaning generated protobuf code..."
+	rm -f pkg/pb/*.pb.go
+	rm -f pkg/pb/*_grpc.pb.go
+
+# Lint proto files
+proto-lint:
+	@echo "Linting proto files..."
+	buf lint
+
+# Format proto files
+proto-format:
+	@echo "Formatting proto files..."
+	buf format -w
 
 #
 # Migration commands
@@ -194,6 +220,12 @@ help:
 	@echo "  make deps           - Install dependencies"
 	@echo "  make test           - Run unit tests"
 	@echo "  make clean          - Clean build artifacts"
+	@echo ""
+	@echo "Proto/gRPC:"
+	@echo "  make proto-gen      - Generate protobuf code"
+	@echo "  make proto-clean    - Clean generated protobuf code"
+	@echo "  make proto-lint     - Lint proto files"
+	@echo "  make proto-format   - Format proto files"
 	@echo ""
 	@echo "Local Development:"
 	@echo "  make docker-up      - Start local PostgreSQL and MySQL"

@@ -110,3 +110,56 @@ CREATE FUNCTION is_superadmin() RETURNS BOOLEAN;
 ### v2.0 (現行スキーマ) - migrations/postgres/
 マルチテナント対応版（organization_id + RLS）。
 ```
+
+---
+
+## 完了: Dockerでのマイグレーションテスト (2025-12-06)
+
+### テスト結果サマリー
+
+| テスト | 期待結果 | 実際の結果 |
+|--------|---------|-----------|
+| マイグレーション実行 | version 4 | ✅ version 4 |
+| テーブル数 | 27テーブル | ✅ 28テーブル（schema_migrations含む） |
+| RLS（セッション変数なし） | 0件返却 | ✅ 0件 |
+| RLS（ACME設定後） | ACME のデータのみ | ✅ acme_report.pdf のみ |
+| RLS（Globex設定後） | Globex のデータのみ | ✅ globex_data.csv のみ |
+| superadmin | 全データアクセス可 | ✅ 2件全て表示 |
+| ロールバック | エラーなく戻せる | ✅ version 3 に戻り、再適用で version 4 |
+
+### 修正事項
+
+- `internal/database/connection.go`: ローカル開発用にパスワードフィールドを追加
+- `cmd/migrate/main.go`: `--password` フラグとviperバインディングを追加
+
+---
+
+## 完了: CloudSQL本番環境セットアップと認証テスト (2025-12-06)
+
+コミット: `3ddffc5`
+
+### 実装内容
+
+- CloudSQL本番環境へのマイグレーション実行手順をREADMEに追加
+- IAMユーザー認証テスト機能を追加
+- Cloud SQL Proxy経由での接続確認
+
+### テスト結果
+
+| テスト | 期待結果 | 実際の結果 |
+|--------|---------|-----------|
+| IAMユーザー + パスワード | ❌ 拒否 | ✅ 拒否 |
+| postgres + 正しいパスワード | ✅ 成功 | ✅ 成功 |
+| postgres + 間違ったパスワード | ❌ 拒否 | ✅ 拒否 |
+
+---
+
+## 完了: RLS統合テストとMakeターゲット追加 (2025-12-06)
+
+コミット: `0d1df48`
+
+### 実装内容
+
+- `make test-integration`: Docker環境でのRLS統合テスト
+- `make test-cloudsql-auth`: CloudSQL認証テスト
+- `make proxy-start` / `proxy-stop`: Cloud SQL Proxy管理

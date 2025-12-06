@@ -34,6 +34,10 @@ example/*
 
 .claude/settings.local.json
 
+# Generated protobuf code
+pkg/pb/*.pb.go
+pkg/pb/*_grpc.pb.go
+
 # Secrets (never commit these!)
 configs/config.production.yaml
 configs/config.staging.yaml

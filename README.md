@@ -570,12 +570,45 @@ import pb "github.com/yourorg/cloudsql/pkg/pb"
 
 ## Proto生成
 
-```bash
-# buf CLIのインストール
-go install github.com/bufbuild/buf/cmd/buf@latest
+### buf CLIのインストール
 
-# コード生成
+```bash
+go install github.com/bufbuild/buf/cmd/buf@latest
+```
+
+### コード生成
+
+```bash
+# Makefileを使用（推奨）
+make proto-gen
+
+# または直接bufコマンドを使用
 buf generate
+```
+
+### その他のProtoコマンド
+
+```bash
+# Lintチェック
+make proto-lint
+
+# フォーマット
+make proto-format
+
+# 生成コードのクリーンアップ
+make proto-clean
+```
+
+### Proto定義の構成
+
+```
+proto/
+└── migration.proto    # CloudSQLマイグレーション管理サービス定義
+
+pkg/pb/               # 生成されたGoコード（gitignore対象）
+├── .gitkeep
+├── *.pb.go          # 生成されたメッセージ型
+└── *_grpc.pb.go     # 生成されたgRPCサービス
 ```
 
 ## ライセンス

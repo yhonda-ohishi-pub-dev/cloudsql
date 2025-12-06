@@ -4,29 +4,24 @@
 
 ---
 
-## 完了: Dockerでのマイグレーションテスト (2025-12-06)
+## 完了: gRPC/proto構成追加 (2025-12-06)
 
-### テスト結果サマリー
+### 作成ファイル
 
-| テスト | 期待結果 | 実際の結果 |
-|--------|---------|-----------|
-| マイグレーション実行 | version 4 | ✅ version 4 |
-| テーブル数 | 27テーブル | ✅ 28テーブル（schema_migrations含む） |
-| RLS（セッション変数なし） | 0件返却 | ✅ 0件 |
-| RLS（ACME設定後） | ACME のデータのみ | ✅ acme_report.pdf のみ |
-| RLS（Globex設定後） | Globex のデータのみ | ✅ globex_data.csv のみ |
-| superadmin | 全データアクセス可 | ✅ 2件全て表示 |
-| ロールバック | エラーなく戻せる | ✅ version 3 に戻り、再適用で version 4 |
+- `proto/migration.proto` - マイグレーションサービス定義
+- `buf.yaml` - buf設定
+- `buf.gen.yaml` - コード生成設定
+- `pkg/pb/.gitkeep` - 生成コード配置先
+- `docs/GRPC_IMPLEMENTATION.md` - 実装ガイド
 
-### 修正事項
+### 更新ファイル
 
-- `internal/database/connection.go`: ローカル開発用にパスワードフィールドを追加
-- `cmd/migrate/main.go`: `--password` フラグとviperバインディングを追加
+- `Makefile` - proto-gen, proto-lint, proto-format, proto-clean ターゲット追加
+- `README.md` - Proto生成手順を拡充
+- `.gitignore` - 生成コードを除外
 
 ---
 
 ## 次のステップ（予定）
 
-- CloudSQL本番環境へのマイグレーションテスト
-- アプリケーションコードでのRLS統合実装
-- CI/CDパイプラインへのマイグレーション組み込み
+- （なし）
