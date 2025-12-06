@@ -76,9 +76,9 @@ make mysql-version
 export GCP_PROJECT=your-project
 export GCP_REGION=asia-northeast1
 export PG_INSTANCE=your-postgres-instance
-export DB_USER=postgres
-export DB_PASSWORD=your-password
+export DB_USER=user@example.com  # IAMユーザーのメールアドレス
 export DB_NAME=your-database
+# パスワードは不要（IAM認証）
 
 # マイグレーション実行
 make cloudsql-pg-up
@@ -502,6 +502,24 @@ gcloud storage ls -l gs://BUCKET_NAME/
 | 復元時 | インスタンス停止必要 | 稼働中でもOK |
 | ストレージ費用 | $0.08/GB/月 | $0.023/GB/月 (GCS Standard) |
 | 用途 | 災害復旧、完全復元 | データ移行、長期アーカイブ |
+
+## 変更履歴
+
+### v1.0 (旧スキーマ) - migrations/postgres/old/
+
+シングルテナント版。以下のコミットで構築：
+
+| コミット | 内容 |
+|----------|------|
+| `89324d0` | .claude/settings.local.jsonをgit管理から除外 |
+| `be9dd45` | dtakologsテーブルのマイグレーション追加 |
+| `1ae62d1` | データベーススキーマ全体のマイグレーション追加 |
+| `a01ef47` | バックアップ・復元機能とインスタンス管理を追加 |
+| `ac8fd86` | パスワードオプション完全削除: CLIレベルでパスワード指定を不可に |
+
+### v2.0 (現行スキーマ) - migrations/postgres/
+
+マルチテナント対応版（organization_id + RLS）。
 
 ## ライセンス
 
