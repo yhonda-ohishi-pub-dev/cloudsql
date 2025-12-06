@@ -112,10 +112,11 @@ make cloudsql-mysql-up
 **MySQLマイグレーション**: 成功
 - Current version: 1 (dirty: false)
 
-**CloudSQL接続**: 準備完了
-- Cloud SQL Go Connector対応済み（PostgreSQL/MySQL両方）
-- パブリックIP/プライベートIP両方対応
-- 必要な環境変数・IAM権限を文書化済み
+**CloudSQL接続テスト**: 成功
+- インスタンス: `postgres-test` (db-f1-micro, asia-northeast1)
+- Cloud SQL Go Connector経由で接続成功
+- マイグレーション実行成功: Current version: 1 (dirty: false)
+- インスタンスは費用削減のため停止済み（activation-policy=NEVER）
 
 ## Git コミット履歴
 
