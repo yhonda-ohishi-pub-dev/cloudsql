@@ -147,14 +147,23 @@ func getConfig() *database.Config {
 		port = 3306
 	}
 
+	useCloudSQL := viper.GetBool("cloudsql.enabled")
+	password := viper.GetString("password")
+
+	// For CloudSQL, reject password (IAM auth only)
+	if useCloudSQL && password != "" {
+		fmt.Fprintln(os.Stderr, "Error: CloudSQL connection requires IAM authentication; password must not be specified. Remove --password flag or password from config file.")
+		os.Exit(1)
+	}
+
 	return &database.Config{
 		Host:         viper.GetString("host"),
 		Port:         port,
 		User:         viper.GetString("user"),
-		Password:     viper.GetString("password"),
+		Password:     password,
 		Database:     viper.GetString("database"),
 		SSLMode:      viper.GetString("sslmode"),
-		UseCloudSQL:  viper.GetBool("cloudsql.enabled"),
+		UseCloudSQL:  useCloudSQL,
 		ProjectID:    viper.GetString("cloudsql.project"),
 		Region:       viper.GetString("cloudsql.region"),
 		InstanceName: viper.GetString("cloudsql.instance"),
@@ -178,6 +187,11 @@ func runMigration(action string) error {
 	cfg := getConfig()
 	dbTypeEnum := getDBType()
 	migrationsPath := getMigrationsPath()
+
+	// Validate CloudSQL configuration (IAM auth required, no password)
+	if err := cfg.ValidateCloudSQL(); err != nil {
+		return err
+	}
 
 	var db interface{}
 	var err error

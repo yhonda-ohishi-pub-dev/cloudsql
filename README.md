@@ -5,9 +5,10 @@ Go製のCloudSQL（PostgreSQL/MySQL）マイグレーション管理ツール
 ## 機能
 
 - PostgreSQL / MySQL 両対応
-- Google CloudSQL Auth Proxy 統合
+- Google Cloud SQL Connector 統合（IAM認証対応）
 - ローカル開発用 Docker Compose 環境
 - CLI によるマイグレーション管理
+- パスワードレス認証（CloudSQL接続時はIAM認証のみ）
 
 ## プロジェクト構成
 
@@ -93,15 +94,18 @@ make cloudsql-pg-up
 --config     # 設定ファイルパス
 --host       # データベースホスト
 --port       # データベースポート
---user       # ユーザー名
---password   # パスワード
+--user       # ユーザー名（CloudSQL: IAMユーザーのメールアドレス）
+--password   # パスワード（CloudSQL接続時は使用不可）
 --database   # データベース名
---cloudsql   # CloudSQL接続を使用
+--cloudsql   # CloudSQL接続を使用（IAM認証）
 --project    # GCPプロジェクトID
 --region     # CloudSQLリージョン
 --instance   # CloudSQLインスタンス名
 --private-ip # プライベートIPを使用
 ```
+
+**注意**: CloudSQL接続時（`--cloudsql`フラグ使用時）はIAM認証のみ対応しています。
+`--password`オプションを指定するとエラーになります。
 
 ## 環境変数
 
@@ -135,7 +139,74 @@ export DB_DATABASE=myapp
 1. `gcloud` CLI がインストール済み
 2. `gcloud auth application-default login` で認証済み
 3. CloudSQL Admin API が有効化済み
-4. 適切な IAM 権限（Cloud SQL Client）
+4. 適切な IAM 権限:
+   - `roles/cloudsql.client` - Cloud SQL接続
+   - `roles/cloudsql.instanceUser` - IAMデータベース認証
+
+## セキュリティ
+
+### IAM認証（パスワードレス）
+
+CloudSQL接続時は**IAM認証のみ**対応しています。これにより：
+
+- パスワード管理が不要
+- GCP IAMによる一元的なアクセス制御
+- 短期トークンによる自動ローテーション
+- Cloud SQL Connector による自動TLS暗号化
+
+### CloudSQLインスタンスの作成
+
+IAM認証を有効にしてインスタンスを作成：
+
+```bash
+# PostgreSQL
+gcloud sql instances create INSTANCE_NAME \
+  --database-version=POSTGRES_15 \
+  --tier=db-f1-micro \
+  --region=asia-northeast1 \
+  --database-flags=cloudsql.iam_authentication=on
+
+# MySQL
+gcloud sql instances create INSTANCE_NAME \
+  --database-version=MYSQL_8_0 \
+  --tier=db-f1-micro \
+  --region=asia-northeast1 \
+  --database-flags=cloudsql_iam_authentication=on
+```
+
+### IAMユーザーの作成
+
+```bash
+# PostgreSQL（メールアドレス全体を使用）
+gcloud sql users create user@example.com \
+  --instance=INSTANCE_NAME \
+  --type=CLOUD_IAM_USER
+
+# MySQL（@より前の部分のみ使用）
+gcloud sql users create user \
+  --instance=INSTANCE_NAME \
+  --type=CLOUD_IAM_USER
+```
+
+### データベース権限の付与
+
+IAMユーザー作成後、Cloud Shell経由でGRANT権限を付与：
+
+```bash
+# Cloud Shellに接続
+gcloud sql connect INSTANCE_NAME --user=postgres  # PostgreSQL
+gcloud sql connect INSTANCE_NAME --user=root      # MySQL
+```
+
+```sql
+-- PostgreSQL
+GRANT ALL ON SCHEMA public TO "user@example.com";
+GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO "user@example.com";
+
+-- MySQL
+GRANT ALL PRIVILEGES ON database_name.* TO 'user'@'%';
+FLUSH PRIVILEGES;
+```
 
 ## CloudSQL 環境変数の取得方法
 
@@ -238,10 +309,16 @@ gcloud sql instances describe INSTANCE_NAME
 # インスタンスのユーザー一覧
 gcloud sql users list --instance=INSTANCE_NAME
 
-# 新しいユーザーを作成する場合
-gcloud sql users create USERNAME \
+# IAMユーザーを作成する場合（推奨）
+# PostgreSQL: メールアドレス全体
+gcloud sql users create user@example.com \
   --instance=INSTANCE_NAME \
-  --password=PASSWORD
+  --type=CLOUD_IAM_USER
+
+# MySQL: @より前の部分のみ
+gcloud sql users create user \
+  --instance=INSTANCE_NAME \
+  --type=CLOUD_IAM_USER
 ```
 
 #### DB_NAME（データベース名）
@@ -262,9 +339,11 @@ $env:GCP_PROJECT = "my-gcp-project"
 $env:GCP_REGION = "asia-northeast1"
 $env:PG_INSTANCE = "my-postgres-instance"
 $env:MYSQL_INSTANCE = "my-mysql-instance"
-$env:DB_USER = "postgres"
-$env:DB_PASSWORD = "your-secure-password"
+# IAM認証の場合（推奨）
+$env:DB_USER = "user@example.com"  # PostgreSQL
+$env:DB_USER = "user"              # MySQL
 $env:DB_NAME = "myapp"
+# パスワードは不要（IAM認証）
 ```
 
 #### Windows (Command Prompt)
@@ -273,8 +352,7 @@ set GCP_PROJECT=my-gcp-project
 set GCP_REGION=asia-northeast1
 set PG_INSTANCE=my-postgres-instance
 set MYSQL_INSTANCE=my-mysql-instance
-set DB_USER=postgres
-set DB_PASSWORD=your-secure-password
+set DB_USER=user@example.com
 set DB_NAME=myapp
 ```
 
@@ -284,9 +362,11 @@ export GCP_PROJECT=my-gcp-project
 export GCP_REGION=asia-northeast1
 export PG_INSTANCE=my-postgres-instance
 export MYSQL_INSTANCE=my-mysql-instance
-export DB_USER=postgres
-export DB_PASSWORD=your-secure-password
+# IAM認証の場合（推奨）
+export DB_USER=user@example.com  # PostgreSQL
+export DB_USER=user              # MySQL
 export DB_NAME=myapp
+# パスワードは不要（IAM認証）
 ```
 
 ### 5. IAM権限の確認・付与
@@ -306,23 +386,25 @@ gcloud projects add-iam-policy-binding PROJECT_ID \
 ### 6. 接続テスト
 
 ```bash
-# PostgreSQL
+# PostgreSQL（IAM認証）
 ./bin/migrate version --db postgres --cloudsql \
   --project $GCP_PROJECT \
   --region $GCP_REGION \
   --instance $PG_INSTANCE \
   --user $DB_USER \
-  --password $DB_PASSWORD \
   --database $DB_NAME
 
-# MySQL
+# MySQL（IAM認証）
 ./bin/migrate version --db mysql --cloudsql \
   --project $GCP_PROJECT \
   --region $GCP_REGION \
   --instance $MYSQL_INSTANCE \
   --user $DB_USER \
-  --password $DB_PASSWORD \
   --database $DB_NAME
+
+# または設定ファイルを使用
+./bin/migrate version --db postgres --config configs/config.postgres.dev.yaml
+./bin/migrate version --db mysql --config configs/config.mysql.dev.yaml
 ```
 
 ### トラブルシューティング
@@ -330,9 +412,11 @@ gcloud projects add-iam-policy-binding PROJECT_ID \
 | エラー | 原因 | 解決方法 |
 |--------|------|----------|
 | `could not find default credentials` | ADC未設定 | `gcloud auth application-default login` を実行 |
-| `permission denied` | IAM権限不足 | `roles/cloudsql.client` を付与 |
+| `permission denied` | IAM権限不足 | `roles/cloudsql.client` と `roles/cloudsql.instanceUser` を付与 |
 | `Cloud SQL Admin API has not been used` | API未有効 | `gcloud services enable sqladmin.googleapis.com` |
 | `connection refused` | ネットワーク設定 | CloudSQLの承認済みネットワークを確認 |
+| `password must not be specified` | CloudSQLでパスワード使用 | `--password`オプションを削除（IAM認証のみ対応） |
+| `Access denied for user` | DB権限不足 | Cloud Shell経由でGRANT権限を付与 |
 
 ## ライセンス
 

@@ -30,6 +30,33 @@ type Config struct {
 	UsePrivateIP bool
 }
 
+// ValidateCloudSQL validates CloudSQL configuration
+// CloudSQL connections must use IAM authentication (no password)
+func (c *Config) ValidateCloudSQL() error {
+	if !c.UseCloudSQL {
+		return nil
+	}
+
+	if c.Password != "" {
+		return fmt.Errorf("CloudSQL connection requires IAM authentication; password must not be specified. Remove --password flag")
+	}
+
+	if c.ProjectID == "" {
+		return fmt.Errorf("CloudSQL connection requires --project flag")
+	}
+	if c.Region == "" {
+		return fmt.Errorf("CloudSQL connection requires --region flag")
+	}
+	if c.InstanceName == "" {
+		return fmt.Errorf("CloudSQL connection requires --instance flag")
+	}
+	if c.User == "" {
+		return fmt.Errorf("CloudSQL connection requires --user flag (IAM user email)")
+	}
+
+	return nil
+}
+
 // PostgresDSN returns a PostgreSQL connection string
 func (c *Config) PostgresDSN() string {
 	if c.UseCloudSQL {
@@ -103,21 +130,22 @@ func ConnectPostgres(ctx context.Context, cfg *Config) (*sql.DB, error) {
 	return db, nil
 }
 
-// connectPostgresCloudSQL connects to PostgreSQL via CloudSQL Connector
+// connectPostgresCloudSQL connects to PostgreSQL via CloudSQL Connector with IAM authentication
 func connectPostgresCloudSQL(ctx context.Context, cfg *Config) (*sql.DB, error) {
 	instanceConnName := cfg.CloudSQLInstanceConnectionName()
 
-	// Build DSN for pgx
+	// Build DSN for pgx (no password - using IAM auth)
 	dsn := fmt.Sprintf(
-		"user=%s password=%s dbname=%s sslmode=disable host=%s",
+		"user=%s dbname=%s sslmode=disable host=%s",
 		cfg.User,
-		cfg.Password,
 		cfg.Database,
 		instanceConnName,
 	)
 
-	// Use pgxv5 with CloudSQL connector
+	// Use pgxv5 with CloudSQL connector and IAM authentication
 	var opts []cloudsqlconn.Option
+	opts = append(opts, cloudsqlconn.WithIAMAuthN()) // Enable IAM authentication
+
 	if cfg.UsePrivateIP {
 		opts = append(opts, cloudsqlconn.WithDefaultDialOptions(cloudsqlconn.WithPrivateIP()))
 	}
@@ -158,9 +186,10 @@ func ConnectMySQL(ctx context.Context, cfg *Config) (*sql.DB, error) {
 	return db, nil
 }
 
-// connectMySQLCloudSQL connects to MySQL via CloudSQL Connector
+// connectMySQLCloudSQL connects to MySQL via CloudSQL Connector with IAM authentication
 func connectMySQLCloudSQL(ctx context.Context, cfg *Config) (*sql.DB, error) {
-	dialer, err := cloudsqlconn.NewDialer(ctx)
+	// Create dialer with IAM authentication
+	dialer, err := cloudsqlconn.NewDialer(ctx, cloudsqlconn.WithIAMAuthN())
 	if err != nil {
 		return nil, fmt.Errorf("failed to create cloudsql dialer: %w", err)
 	}
@@ -176,10 +205,10 @@ func connectMySQLCloudSQL(ctx context.Context, cfg *Config) (*sql.DB, error) {
 		return dialer.Dial(ctx, instanceConnName, opts...)
 	})
 
+	// DSN without password - IAM auth provides the token automatically
 	dsn := fmt.Sprintf(
-		"%s:%s@cloudsql(%s)/%s?parseTime=true",
+		"%s@cloudsql(%s)/%s?parseTime=true&allowCleartextPasswords=true",
 		cfg.User,
-		cfg.Password,
 		instanceConnName,
 		cfg.Database,
 	)
