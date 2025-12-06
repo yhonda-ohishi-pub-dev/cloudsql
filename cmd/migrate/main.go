@@ -91,7 +91,6 @@ func init() {
 	rootCmd.PersistentFlags().String("host", "localhost", "database host")
 	rootCmd.PersistentFlags().Int("port", 5432, "database port")
 	rootCmd.PersistentFlags().String("user", "", "database user")
-	rootCmd.PersistentFlags().String("password", "", "database password")
 	rootCmd.PersistentFlags().String("database", "", "database name")
 	rootCmd.PersistentFlags().String("sslmode", "disable", "SSL mode")
 
@@ -106,7 +105,6 @@ func init() {
 	viper.BindPFlag("host", rootCmd.PersistentFlags().Lookup("host"))
 	viper.BindPFlag("port", rootCmd.PersistentFlags().Lookup("port"))
 	viper.BindPFlag("user", rootCmd.PersistentFlags().Lookup("user"))
-	viper.BindPFlag("password", rootCmd.PersistentFlags().Lookup("password"))
 	viper.BindPFlag("database", rootCmd.PersistentFlags().Lookup("database"))
 	viper.BindPFlag("sslmode", rootCmd.PersistentFlags().Lookup("sslmode"))
 	viper.BindPFlag("cloudsql.enabled", rootCmd.PersistentFlags().Lookup("cloudsql"))
@@ -147,23 +145,13 @@ func getConfig() *database.Config {
 		port = 3306
 	}
 
-	useCloudSQL := viper.GetBool("cloudsql.enabled")
-	password := viper.GetString("password")
-
-	// For CloudSQL, reject password (IAM auth only)
-	if useCloudSQL && password != "" {
-		fmt.Fprintln(os.Stderr, "Error: CloudSQL connection requires IAM authentication; password must not be specified. Remove --password flag or password from config file.")
-		os.Exit(1)
-	}
-
 	return &database.Config{
 		Host:         viper.GetString("host"),
 		Port:         port,
 		User:         viper.GetString("user"),
-		Password:     password,
 		Database:     viper.GetString("database"),
 		SSLMode:      viper.GetString("sslmode"),
-		UseCloudSQL:  useCloudSQL,
+		UseCloudSQL:  viper.GetBool("cloudsql.enabled"),
 		ProjectID:    viper.GetString("cloudsql.project"),
 		Region:       viper.GetString("cloudsql.region"),
 		InstanceName: viper.GetString("cloudsql.instance"),

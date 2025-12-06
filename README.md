@@ -95,7 +95,6 @@ make cloudsql-pg-up
 --host       # データベースホスト
 --port       # データベースポート
 --user       # ユーザー名（CloudSQL: IAMユーザーのメールアドレス）
---password   # パスワード（CloudSQL接続時は使用不可）
 --database   # データベース名
 --cloudsql   # CloudSQL接続を使用（IAM認証）
 --project    # GCPプロジェクトID
@@ -104,8 +103,7 @@ make cloudsql-pg-up
 --private-ip # プライベートIPを使用
 ```
 
-**注意**: CloudSQL接続時（`--cloudsql`フラグ使用時）はIAM認証のみ対応しています。
-`--password`オプションを指定するとエラーになります。
+**注意**: このツールはIAM認証のみ対応しています。パスワードオプションは存在しません。
 
 ## 環境変数
 
@@ -114,8 +112,7 @@ make cloudsql-pg-up
 ```bash
 export DB_HOST=localhost
 export DB_PORT=5432
-export DB_USER=postgres
-export DB_PASSWORD=postgres
+export DB_USER=user@example.com
 export DB_DATABASE=myapp
 ```
 
@@ -147,12 +144,31 @@ export DB_DATABASE=myapp
 
 ### IAM認証（パスワードレス）
 
-CloudSQL接続時は**IAM認証のみ**対応しています。これにより：
+このツールは**IAM認証のみ**対応しています。パスワードオプションは存在しません。
 
 - パスワード管理が不要
 - GCP IAMによる一元的なアクセス制御
 - 短期トークンによる自動ローテーション
 - Cloud SQL Connector による自動TLS暗号化
+
+### CloudSQL Connectorによるセキュアな接続
+
+CloudSQL Connectorを使用することで、外部からのアクセスはIAM認証に限定されます：
+
+| 接続方法 | 認証 | 結果 |
+|---------|------|------|
+| Public IP直接接続 | - | ❌ 拒否（authorizedNetworks未設定） |
+| CloudSQL Connector経由 | IAM | ✅ 接続成功 |
+
+```
+[クライアント] → [Google Cloud API] → [CloudSQL Connector] → [CloudSQL]
+                      ↑
+                IAM認証がここで行われる
+```
+
+- Public IPは有効だが、直接接続は承認済みネットワークがないため不可
+- Connectorは**Google Cloud API経由**でセキュアなトンネルを確立
+- IAM認証を持つユーザーのみがアクセス可能
 
 ### CloudSQLインスタンスの作成
 
@@ -414,8 +430,7 @@ gcloud projects add-iam-policy-binding PROJECT_ID \
 | `could not find default credentials` | ADC未設定 | `gcloud auth application-default login` を実行 |
 | `permission denied` | IAM権限不足 | `roles/cloudsql.client` と `roles/cloudsql.instanceUser` を付与 |
 | `Cloud SQL Admin API has not been used` | API未有効 | `gcloud services enable sqladmin.googleapis.com` |
-| `connection refused` | ネットワーク設定 | CloudSQLの承認済みネットワークを確認 |
-| `password must not be specified` | CloudSQLでパスワード使用 | `--password`オプションを削除（IAM認証のみ対応） |
+| `connection refused` | ネットワーク設定 | CloudSQL Connector経由で接続（直接接続は不可） |
 | `Access denied for user` | DB権限不足 | Cloud Shell経由でGRANT権限を付与 |
 
 ## ライセンス

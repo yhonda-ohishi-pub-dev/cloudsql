@@ -18,7 +18,6 @@ type Config struct {
 	Host     string
 	Port     int
 	User     string
-	Password string
 	Database string
 	SSLMode  string
 
@@ -35,10 +34,6 @@ type Config struct {
 func (c *Config) ValidateCloudSQL() error {
 	if !c.UseCloudSQL {
 		return nil
-	}
-
-	if c.Password != "" {
-		return fmt.Errorf("CloudSQL connection requires IAM authentication; password must not be specified. Remove --password flag")
 	}
 
 	if c.ProjectID == "" {
@@ -60,24 +55,22 @@ func (c *Config) ValidateCloudSQL() error {
 // PostgresDSN returns a PostgreSQL connection string
 func (c *Config) PostgresDSN() string {
 	if c.UseCloudSQL {
-		// CloudSQL connection string format
+		// CloudSQL connection string format (IAM auth, no password)
 		return fmt.Sprintf(
-			"host=%s user=%s password=%s dbname=%s sslmode=%s",
+			"host=%s user=%s dbname=%s sslmode=%s",
 			c.CloudSQLInstanceConnectionName(),
 			c.User,
-			c.Password,
 			c.Database,
 			c.SSLMode,
 		)
 	}
 
-	// Standard PostgreSQL connection string
+	// Standard PostgreSQL connection string (IAM auth, no password)
 	return fmt.Sprintf(
-		"host=%s port=%d user=%s password=%s dbname=%s sslmode=%s",
+		"host=%s port=%d user=%s dbname=%s sslmode=%s",
 		c.Host,
 		c.Port,
 		c.User,
-		c.Password,
 		c.Database,
 		c.SSLMode,
 	)
@@ -86,21 +79,19 @@ func (c *Config) PostgresDSN() string {
 // MySQLDSN returns a MySQL connection string
 func (c *Config) MySQLDSN() string {
 	if c.UseCloudSQL {
-		// CloudSQL uses custom dialer, DSN format is different
+		// CloudSQL uses custom dialer (IAM auth, no password)
 		return fmt.Sprintf(
-			"%s:%s@cloudsql(%s)/%s?parseTime=true",
+			"%s@cloudsql(%s)/%s?parseTime=true",
 			c.User,
-			c.Password,
 			c.CloudSQLInstanceConnectionName(),
 			c.Database,
 		)
 	}
 
-	// Standard MySQL connection string
+	// Standard MySQL connection string (IAM auth, no password)
 	return fmt.Sprintf(
-		"%s:%s@tcp(%s:%d)/%s?parseTime=true",
+		"%s@tcp(%s:%d)/%s?parseTime=true",
 		c.User,
-		c.Password,
 		c.Host,
 		c.Port,
 		c.Database,
