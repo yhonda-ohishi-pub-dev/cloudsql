@@ -32,6 +32,8 @@ Thumbs.db
 
 example/*
 
+.claude/settings.local.json
+
 # Secrets (never commit these!)
 configs/config.production.yaml
 configs/config.staging.yaml
