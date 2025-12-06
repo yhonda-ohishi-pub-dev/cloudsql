@@ -139,6 +139,47 @@ export DB_DATABASE=myapp
 
 ## CloudSQL 環境変数の取得方法
 
+### 0. gcloud CLI のインストール
+
+#### Windows
+```powershell
+# PowerShellで実行（管理者権限推奨）
+# インストーラーをダウンロードして実行
+Invoke-WebRequest -Uri "https://dl.google.com/dl/cloudsdk/channels/rapid/GoogleCloudSDKInstaller.exe" -OutFile "$env:TEMP\GoogleCloudSDKInstaller.exe"
+Start-Process -FilePath "$env:TEMP\GoogleCloudSDKInstaller.exe" -Wait
+
+# または winget を使用
+winget install Google.CloudSDK
+
+# または Chocolatey を使用
+choco install gcloudsdk
+```
+
+#### macOS
+```bash
+# Homebrew を使用
+brew install --cask google-cloud-sdk
+
+# または公式インストーラー
+curl https://sdk.cloud.google.com | bash
+exec -l $SHELL
+```
+
+#### Linux (Debian/Ubuntu)
+```bash
+# APT リポジトリを追加
+echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] https://packages.cloud.google.com/apt cloud-sdk main" | sudo tee -a /etc/apt/sources.list.d/google-cloud-sdk.list
+curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key --keyring /usr/share/keyrings/cloud.google.gpg add -
+
+# インストール
+sudo apt-get update && sudo apt-get install google-cloud-cli
+```
+
+#### インストール確認
+```bash
+gcloud version
+```
+
 ### 1. GCP認証の設定
 
 ```bash
