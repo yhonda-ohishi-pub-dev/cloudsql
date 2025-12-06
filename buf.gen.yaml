@@ -5,11 +5,11 @@ managed:
     - file_option: go_package_prefix
       value: github.com/yhonda-ohishi-pub-dev/cloudsql/pkg/pb
 plugins:
-  - remote: buf.build/protocolbuffers/go
+  - local: protoc-gen-go
     out: pkg/pb
     opt:
       - paths=source_relative
-  - remote: buf.build/grpc/go
+  - local: protoc-gen-go-grpc
     out: pkg/pb
     opt:
       - paths=source_relative

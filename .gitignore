@@ -34,9 +34,9 @@ example/*
 
 .claude/settings.local.json
 
-# Generated protobuf code
-pkg/pb/*.pb.go
-pkg/pb/*_grpc.pb.go
+# Generated protobuf code (コミット対象: 他リポジトリからimport可能にするため)
+# pkg/pb/*.pb.go
+# pkg/pb/*_grpc.pb.go
 
 # Secrets (never commit these!)
 configs/config.production.yaml
