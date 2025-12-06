@@ -137,6 +137,162 @@ export DB_DATABASE=myapp
 3. CloudSQL Admin API が有効化済み
 4. 適切な IAM 権限（Cloud SQL Client）
 
+## CloudSQL 環境変数の取得方法
+
+### 1. GCP認証の設定
+
+```bash
+# gcloud CLIのインストール確認
+gcloud version
+
+# ログイン（ブラウザが開きます）
+gcloud auth login
+
+# Application Default Credentials の設定（必須）
+gcloud auth application-default login
+
+# プロジェクトの設定
+gcloud config set project YOUR_PROJECT_ID
+```
+
+### 2. CloudSQL Admin API の有効化
+
+```bash
+gcloud services enable sqladmin.googleapis.com
+```
+
+### 3. 環境変数の取得
+
+#### GCP_PROJECT（プロジェクトID）
+```bash
+# 現在のプロジェクトIDを確認
+gcloud config get-value project
+
+# または全プロジェクト一覧から選択
+gcloud projects list
+```
+
+#### GCP_REGION（リージョン）
+```bash
+# CloudSQLインスタンスのリージョンを確認
+gcloud sql instances list --format="table(name,region)"
+
+# 一般的なリージョン:
+# - asia-northeast1 (東京)
+# - asia-northeast2 (大阪)
+# - us-central1 (アイオワ)
+```
+
+#### PG_INSTANCE / MYSQL_INSTANCE（インスタンス名）
+```bash
+# CloudSQLインスタンス一覧
+gcloud sql instances list
+
+# 特定のインスタンスの詳細
+gcloud sql instances describe INSTANCE_NAME
+```
+
+#### DB_USER（データベースユーザー）
+```bash
+# インスタンスのユーザー一覧
+gcloud sql users list --instance=INSTANCE_NAME
+
+# 新しいユーザーを作成する場合
+gcloud sql users create USERNAME \
+  --instance=INSTANCE_NAME \
+  --password=PASSWORD
+```
+
+#### DB_NAME（データベース名）
+```bash
+# インスタンスのデータベース一覧
+gcloud sql databases list --instance=INSTANCE_NAME
+
+# 新しいデータベースを作成する場合
+gcloud sql databases create DATABASE_NAME \
+  --instance=INSTANCE_NAME
+```
+
+### 4. 環境変数の設定例
+
+#### Windows (PowerShell)
+```powershell
+$env:GCP_PROJECT = "my-gcp-project"
+$env:GCP_REGION = "asia-northeast1"
+$env:PG_INSTANCE = "my-postgres-instance"
+$env:MYSQL_INSTANCE = "my-mysql-instance"
+$env:DB_USER = "postgres"
+$env:DB_PASSWORD = "your-secure-password"
+$env:DB_NAME = "myapp"
+```
+
+#### Windows (Command Prompt)
+```cmd
+set GCP_PROJECT=my-gcp-project
+set GCP_REGION=asia-northeast1
+set PG_INSTANCE=my-postgres-instance
+set MYSQL_INSTANCE=my-mysql-instance
+set DB_USER=postgres
+set DB_PASSWORD=your-secure-password
+set DB_NAME=myapp
+```
+
+#### Linux / macOS
+```bash
+export GCP_PROJECT=my-gcp-project
+export GCP_REGION=asia-northeast1
+export PG_INSTANCE=my-postgres-instance
+export MYSQL_INSTANCE=my-mysql-instance
+export DB_USER=postgres
+export DB_PASSWORD=your-secure-password
+export DB_NAME=myapp
+```
+
+### 5. IAM権限の確認・付与
+
+```bash
+# 現在のユーザーのIAM権限を確認
+gcloud projects get-iam-policy PROJECT_ID \
+  --flatten="bindings[].members" \
+  --filter="bindings.members:user:YOUR_EMAIL"
+
+# Cloud SQL Client 権限を付与（管理者権限が必要）
+gcloud projects add-iam-policy-binding PROJECT_ID \
+  --member="user:YOUR_EMAIL" \
+  --role="roles/cloudsql.client"
+```
+
+### 6. 接続テスト
+
+```bash
+# PostgreSQL
+./bin/migrate version --db postgres --cloudsql \
+  --project $GCP_PROJECT \
+  --region $GCP_REGION \
+  --instance $PG_INSTANCE \
+  --user $DB_USER \
+  --password $DB_PASSWORD \
+  --database $DB_NAME
+
+# MySQL
+./bin/migrate version --db mysql --cloudsql \
+  --project $GCP_PROJECT \
+  --region $GCP_REGION \
+  --instance $MYSQL_INSTANCE \
+  --user $DB_USER \
+  --password $DB_PASSWORD \
+  --database $DB_NAME
+```
+
+### トラブルシューティング
+
+| エラー | 原因 | 解決方法 |
+|--------|------|----------|
+| `could not find default credentials` | ADC未設定 | `gcloud auth application-default login` を実行 |
+| `permission denied` | IAM権限不足 | `roles/cloudsql.client` を付与 |
+| `Cloud SQL Admin API has not been used` | API未有効 | `gcloud services enable sqladmin.googleapis.com` |
+| `connection refused` | ネットワーク設定 | CloudSQLの承認済みネットワークを確認 |
+
 ## ライセンス
 
 MIT
