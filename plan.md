@@ -1,240 +1,144 @@
-# マルチテナント（企業シャーディング）実装計画
+# 計画・タスク管理
 
-## 決定事項
-
-- **既存データ**: なし（新規作成）
-- **認証方式**: IAM + app_users 紐付け
-- **古いusersテーブル**: 削除（init/my_schema両方）
-- **スキーマ設計**: 比較検討中（下記参照）
+**実行済み計画**: [docs/PLAN-EXECUTED.md](docs/PLAN-EXECUTED.md) を参照
 
 ---
 
-## スキーマ分離 vs organization_id カラム 詳細比較
+## 未実行: Dockerでのマイグレーションテスト
 
-### 方式A: スキーマ分離
+### 1. Docker環境起動
 
+```bash
+# PostgreSQL + Adminer を起動
+make docker-up
+
+# 起動確認
+docker ps
+
+# ログ確認（エラーがないか）
+docker-compose logs postgres
 ```
-├── public/                    # 共通テーブル
-│   ├── organizations
-│   └── app_users
-├── org_acme/                  # ACME社専用スキーマ
-│   ├── files
-│   ├── kudguri
-│   └── dtakologs
-└── org_globex/                # Globex社専用スキーマ
-    ├── files
-    ├── kudguri
-    └── dtakologs
+
+### 2. マイグレーション実行
+
+```bash
+# ビルド
+make build
+
+# マイグレーション実行
+make pg-up
+
+# バージョン確認
+make pg-version
+# -> 4 が表示されれば成功
+```
+
+### 3. テーブル確認（Adminer）
+
+ブラウザで http://localhost:8080 にアクセス
+
+| 項目 | 値 |
+|------|-----|
+| システム | PostgreSQL |
+| サーバ | postgres |
+| ユーザ名 | postgres |
+| パスワード | postgres |
+| データベース | myapp_postgres |
+
+確認すべきテーブル:
+- `organizations`
+- `app_users`
+- `user_organizations`
+- `files`, `kudguri`, `dtakologs` など（全て organization_id 付き）
+
+### 4. RLS動作テスト
+
+```bash
+# PostgreSQLに直接接続
+docker exec -it cloudsql-postgres psql -U postgres -d myapp_postgres
 ```
 
 ```sql
--- 接続時にスキーマを切り替え
-SET search_path TO org_acme, public;
+-- テスト用企業を作成
+INSERT INTO organizations (id, name, slug)
+VALUES
+  ('11111111-1111-1111-1111-111111111111', 'ACME Corp', 'acme'),
+  ('22222222-2222-2222-2222-222222222222', 'Globex Inc', 'globex');
 
--- クエリはシンプル（organization_id不要）
-SELECT * FROM files;  -- org_acme.files を参照
+-- テストユーザーを作成
+INSERT INTO app_users (id, iam_email, display_name, is_superadmin)
+VALUES ('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'user@example.com', 'Test User', false);
+
+-- ユーザーをACMEに所属させる
+INSERT INTO user_organizations (user_id, organization_id, role, is_default)
+VALUES ('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', '11111111-1111-1111-1111-111111111111', 'admin', true);
+
+-- テストデータ挿入
+INSERT INTO files (uuid, organization_id, filename, created, type)
+VALUES
+  ('file-001', '11111111-1111-1111-1111-111111111111', 'acme_report.pdf', NOW()::TEXT, 'pdf'),
+  ('file-002', '22222222-2222-2222-2222-222222222222', 'globex_data.csv', NOW()::TEXT, 'csv');
+
+-- RLSテスト: セッション変数なしでクエリ
+SELECT * FROM files;
+-- -> 0件（RLSでブロック）
+
+-- ACME社として設定
+SET app.current_organization_id = '11111111-1111-1111-1111-111111111111';
+
+-- 再度クエリ
+SELECT * FROM files;
+-- -> acme_report.pdf のみ表示（1件）
+
+-- Globex社として設定
+SET app.current_organization_id = '22222222-2222-2222-2222-222222222222';
+
+SELECT * FROM files;
+-- -> globex_data.csv のみ表示（1件）
+
+-- superadminテスト
+UPDATE app_users SET is_superadmin = true WHERE iam_email = 'user@example.com';
+SET app.current_user_email = 'user@example.com';
+
+SELECT * FROM files;
+-- -> 両方表示（2件）
 ```
 
-### 方式B: organization_id + RLS
+### 5. ロールバックテスト
 
-```
-├── public/
-│   ├── organizations
-│   ├── app_users
-│   ├── files            (+ organization_id + RLS)
-│   ├── kudguri          (+ organization_id + RLS)
-│   └── dtakologs        (+ organization_id + RLS)
-```
+```bash
+# 1つ戻す
+make pg-down
 
-```sql
--- 接続時にセッション変数を設定
-SET app.current_organization_id = 'uuid-here';
+# バージョン確認
+make pg-version
+# -> 3
 
--- RLSが自動フィルタ
-SELECT * FROM files;  -- WHERE organization_id = current_org() が自動適用
+# 全て戻す（注意: データ消失）
+./bin/migrate --db=postgres --config=./configs/config.postgres.yaml down-all
+
+# 再度適用
+make pg-up
 ```
 
----
+### 6. クリーンアップ
 
-## 比較表
+```bash
+# Dockerボリューム含めて完全削除
+docker-compose down -v
 
-| 観点 | スキーマ分離 | organization_id + RLS |
-|------|-------------|----------------------|
-| **分離レベル** | 物理的に完全分離 | 論理的分離（同一テーブル） |
-| **セキュリティ** | 非常に高い（別スキーマ） | 高い（RLSで制御） |
-| **パフォーマンス** | 良好（小テーブル） | インデックス必要 |
-| **スケーラビリティ** | 企業増でスキーマ増殖 | 単一テーブルで対応 |
-| **マイグレーション** | 全スキーマに適用必要 | 1回で完了 |
-| **バックアップ** | 企業単位で容易 | テーブル全体 |
-| **クロス企業クエリ** | 困難（UNION必要） | 管理者用ポリシーで可能 |
-| **実装コスト** | 高（動的スキーマ管理） | 中（RLS設定） |
-| **運用コスト** | 高（スキーマ増加） | 低 |
-
----
-
-## ユースケース別推奨
-
-### スキーマ分離が適切なケース
-- 企業数が少ない（10社以下）
-- 完全なデータ分離が法的要件
-- 企業ごとに異なるスキーマ拡張が必要
-- 企業単位でのバックアップ/リストアが頻繁
-
-### organization_id + RLS が適切なケース
-- 企業数が多い（10社以上）
-- 統一スキーマで運用
-- クロス企業分析が必要（管理者向け）
-- マイグレーション頻度が高い
-- CloudSQL単一インスタンスで運用
-
----
-
-## 実装詳細
-
-### 方式A: スキーマ分離の実装
-
-#### マイグレーション構成
-```
-migrations/postgres/
-├── 000004_drop_old_users.up.sql         # 古いusersテーブル削除
-├── 000005_organizations.up.sql          # organizations テーブル
-├── 000006_app_users.up.sql              # app_users テーブル
-├── 000007_tenant_schema_template.up.sql # テンプレートスキーマ作成
+# 再起動（クリーンな状態）
+make docker-up
+make pg-up
 ```
 
-#### テンプレートスキーマ
-```sql
--- 新企業作成時に実行するテンプレート
-CREATE SCHEMA org_{slug};
+### 期待される結果
 
-CREATE TABLE org_{slug}.files (
-    uuid TEXT NOT NULL PRIMARY KEY,
-    filename TEXT NOT NULL,
-    created TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    -- organization_id 不要
-);
--- 他のテーブルも同様
-```
-
-#### Goコード
-```go
-func (db *DB) SetTenant(ctx context.Context, orgSlug string) error {
-    schema := fmt.Sprintf("org_%s", orgSlug)
-    _, err := db.ExecContext(ctx,
-        fmt.Sprintf("SET search_path TO %s, public", pq.QuoteIdentifier(schema)))
-    return err
-}
-
-func (db *DB) CreateTenantSchema(ctx context.Context, orgSlug string) error {
-    // テンプレートからスキーマを複製
-    schema := fmt.Sprintf("org_%s", orgSlug)
-    _, err := db.ExecContext(ctx,
-        fmt.Sprintf("CREATE SCHEMA %s", pq.QuoteIdentifier(schema)))
-    if err != nil {
-        return err
-    }
-    // テーブル作成...
-    return nil
-}
-```
-
----
-
-### 方式B: organization_id + RLS の実装
-
-#### マイグレーション構成
-```
-migrations/postgres/
-├── 000004_drop_old_users.up.sql         # 古いusersテーブル削除
-├── 000005_organizations.up.sql          # organizations テーブル
-├── 000006_app_users.up.sql              # app_users テーブル
-├── 000007_add_org_id_all_tables.up.sql  # 全テーブルにorg_id追加
-├── 000008_enable_rls.up.sql             # RLS有効化 + ポリシー
-```
-
-#### RLS設定
-```sql
--- ヘルパー関数
-CREATE OR REPLACE FUNCTION current_organization_id()
-RETURNS UUID AS $$
-    SELECT NULLIF(current_setting('app.current_organization_id', true), '')::UUID;
-$$ LANGUAGE SQL STABLE;
-
--- 全テーブルに適用（例: files）
-ALTER TABLE public.files ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.files FORCE ROW LEVEL SECURITY;
-
-CREATE POLICY tenant_isolation ON public.files
-    USING (organization_id = current_organization_id());
-
--- 管理者用ポリシー（オプション）
-CREATE POLICY admin_access ON public.files
-    USING (
-        EXISTS (
-            SELECT 1 FROM app_users
-            WHERE email = current_setting('app.current_user_email', true)
-            AND role = 'superadmin'
-        )
-    );
-```
-
-#### Goコード
-```go
-func (db *DB) SetTenant(ctx context.Context, orgID uuid.UUID) error {
-    _, err := db.ExecContext(ctx,
-        "SET app.current_organization_id = $1", orgID.String())
-    return err
-}
-```
-
----
-
-## IAM + app_users 紐付け設計
-
-```sql
-CREATE TABLE public.app_users (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    organization_id UUID NOT NULL REFERENCES organizations(id),
-    iam_email TEXT NOT NULL UNIQUE,  -- IAM認証のメールアドレス
-    display_name TEXT NOT NULL,
-    role TEXT NOT NULL DEFAULT 'member',
-    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
-    deleted_at TIMESTAMPTZ
-);
-
-CREATE INDEX idx_app_users_iam_email ON app_users(iam_email);
-CREATE INDEX idx_app_users_org ON app_users(organization_id);
-```
-
-#### 認証フロー
-```
-1. IAM認証でDB接続（user@example.com）
-2. app_usersからorganization_idを取得
-   SELECT organization_id FROM app_users WHERE iam_email = current_user;
-3. セッション変数を設定
-   SET app.current_organization_id = 'retrieved-org-id';
-4. 以降のクエリはRLSでフィルタ
-```
-
----
-
-## 推奨
-
-**organization_id + RLS** を推奨する理由：
-
-1. **CloudSQL単一インスタンス運用に最適**
-2. **マイグレーション管理がシンプル**
-3. **企業数増加に対応しやすい**
-4. **IAM認証との統合が容易**
-
-スキーマ分離は、法的要件で完全分離が必要な場合のみ検討。
-
----
-
-## 次のステップ
-
-どちらの方式で進めますか？
-
-1. **方式A（スキーマ分離）で進める**
-2. **方式B（organization_id + RLS）で進める** ← 推奨
+| テスト | 期待結果 |
+|--------|---------|
+| マイグレーション実行 | version 4 |
+| テーブル数 | 27テーブル（organizations, app_users, user_organizations + 24ビジネステーブル） |
+| RLS（セッション変数なし） | 0件返却 |
+| RLS（org設定後） | 該当orgのデータのみ |
+| superadmin | 全データアクセス可 |
+| ロールバック | エラーなく戻せる |
