@@ -19,6 +19,8 @@ cloudsql/
 ├── migrations/
 │   ├── postgres/         # PostgreSQL マイグレーション
 │   └── mysql/            # MySQL マイグレーション
+├── proto/                # gRPC API定義（.proto）
+├── pkg/pb/               # 生成されたGoコード
 ├── configs/              # 設定ファイル
 ├── scripts/              # デプロイスクリプト
 ├── docker-compose.yaml   # ローカル開発用
@@ -553,6 +555,28 @@ make proxy-stop
 | IAMユーザー + パスワード | ❌ 拒否 |
 | postgres + 正しいパスワード | ✅ 成功 |
 | postgres + 間違ったパスワード | ❌ 拒否 |
+
+## 他リポジトリからの利用
+
+このリポジトリの型定義を他リポジトリで使用する場合：
+
+```bash
+go get github.com/yourorg/cloudsql/pkg/pb
+```
+
+```go
+import pb "github.com/yourorg/cloudsql/pkg/pb"
+```
+
+## Proto生成
+
+```bash
+# buf CLIのインストール
+go install github.com/bufbuild/buf/cmd/buf@latest
+
+# コード生成
+buf generate
+```
 
 ## ライセンス
 
