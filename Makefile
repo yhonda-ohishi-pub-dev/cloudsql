@@ -1,8 +1,9 @@
 .PHONY: build run test clean help
 .PHONY: migrate-up migrate-down migrate-version migrate-create
 .PHONY: pg-up pg-down pg-version mysql-up mysql-down mysql-version
-.PHONY: docker-up docker-down
+.PHONY: docker-up docker-down docker-reset
 .PHONY: cloudsql-pg-stop cloudsql-pg-start cloudsql-mysql-stop cloudsql-mysql-start
+.PHONY: test-rls test-integration test-all
 
 # Build settings
 BINARY_NAME=migrate
@@ -101,6 +102,29 @@ docker-down:
 docker-logs:
 	docker-compose logs -f
 
+docker-reset:
+	docker-compose down -v
+	docker-compose up -d
+	@echo "Waiting for database to be ready..."
+	@sleep 10
+
+#
+# Test commands
+#
+
+# Run all tests
+test-all: test-rls
+	go test -v ./...
+
+# Run RLS integration tests (requires Docker database)
+test-rls:
+	@echo "Running RLS integration tests..."
+	go test -v -run TestRLS ./internal/database/...
+
+# Run integration tests with fresh database
+test-integration: docker-reset pg-up test-rls
+	@echo "Integration tests completed"
+
 #
 # CloudSQL commands (requires gcloud auth)
 #
@@ -146,12 +170,18 @@ help:
 	@echo "Usage:"
 	@echo "  make build          - Build the migration tool"
 	@echo "  make deps           - Install dependencies"
-	@echo "  make test           - Run tests"
+	@echo "  make test           - Run unit tests"
 	@echo "  make clean          - Clean build artifacts"
 	@echo ""
 	@echo "Local Development:"
 	@echo "  make docker-up      - Start local PostgreSQL and MySQL"
 	@echo "  make docker-down    - Stop local databases"
+	@echo "  make docker-reset   - Reset databases (delete volumes)"
+	@echo ""
+	@echo "Testing:"
+	@echo "  make test-rls       - Run RLS integration tests"
+	@echo "  make test-integration - Full integration test (reset + migrate + test)"
+	@echo "  make test-all       - Run all tests"
 	@echo ""
 	@echo "PostgreSQL Migrations:"
 	@echo "  make pg-up          - Run PostgreSQL migrations"
