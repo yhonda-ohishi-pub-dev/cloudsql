@@ -7,8 +7,9 @@ import (
 	"net"
 
 	"cloud.google.com/go/cloudsqlconn"
+	"cloud.google.com/go/cloudsqlconn/postgres/pgxv5"
 	"github.com/go-sql-driver/mysql"
-	"github.com/lib/pq"
+	_ "github.com/lib/pq"
 )
 
 // Config holds database connection configuration
@@ -22,11 +23,11 @@ type Config struct {
 	SSLMode  string
 
 	// CloudSQL specific
-	UseCloudSQL    bool
-	ProjectID      string
-	Region         string
-	InstanceName   string
-	UsePrivateIP   bool
+	UseCloudSQL  bool
+	ProjectID    string
+	Region       string
+	InstanceName string
+	UsePrivateIP bool
 }
 
 // PostgresDSN returns a PostgreSQL connection string
@@ -102,40 +103,35 @@ func ConnectPostgres(ctx context.Context, cfg *Config) (*sql.DB, error) {
 	return db, nil
 }
 
-// connectPostgresCloudSQL connects to PostgreSQL via CloudSQL Auth Proxy
+// connectPostgresCloudSQL connects to PostgreSQL via CloudSQL Connector
 func connectPostgresCloudSQL(ctx context.Context, cfg *Config) (*sql.DB, error) {
-	dialer, err := cloudsqlconn.NewDialer(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create cloudsql dialer: %w", err)
-	}
-
 	instanceConnName := cfg.CloudSQLInstanceConnectionName()
 
-	// Register the cloudsql dialer
+	// Build DSN for pgx
 	dsn := fmt.Sprintf(
-		"host=%s user=%s password=%s dbname=%s sslmode=disable",
-		instanceConnName,
+		"user=%s password=%s dbname=%s sslmode=disable host=%s",
 		cfg.User,
 		cfg.Password,
 		cfg.Database,
+		instanceConnName,
 	)
 
-	// Use pgx with cloudsql connector
-	config, err := pq.ParseURL(fmt.Sprintf(
-		"postgres://%s:%s@localhost/%s?sslmode=disable",
-		cfg.User,
-		cfg.Password,
-		cfg.Database,
-	))
-	if err != nil {
-		return nil, fmt.Errorf("failed to parse postgres url: %w", err)
+	// Use pgxv5 with CloudSQL connector
+	var opts []cloudsqlconn.Option
+	if cfg.UsePrivateIP {
+		opts = append(opts, cloudsqlconn.WithDefaultDialOptions(cloudsqlconn.WithPrivateIP()))
 	}
 
-	_ = config // placeholder for custom dialer setup
-	_ = dsn
+	cleanup, err := pgxv5.RegisterDriver("cloudsql-postgres", opts...)
+	if err != nil {
+		return nil, fmt.Errorf("failed to register cloudsql driver: %w", err)
+	}
+	_ = cleanup // Keep driver registered
 
-	// For CloudSQL, we use the dialer directly
-	db := sql.OpenDB(cloudsqlconn.NewPostgresDialer(dialer, instanceConnName, cfg.UsePrivateIP))
+	db, err := sql.Open("cloudsql-postgres", dsn)
+	if err != nil {
+		return nil, fmt.Errorf("failed to open postgres connection: %w", err)
+	}
 
 	if err := db.PingContext(ctx); err != nil {
 		return nil, fmt.Errorf("failed to ping postgres: %w", err)
@@ -162,7 +158,7 @@ func ConnectMySQL(ctx context.Context, cfg *Config) (*sql.DB, error) {
 	return db, nil
 }
 
-// connectMySQLCloudSQL connects to MySQL via CloudSQL Auth Proxy
+// connectMySQLCloudSQL connects to MySQL via CloudSQL Connector
 func connectMySQLCloudSQL(ctx context.Context, cfg *Config) (*sql.DB, error) {
 	dialer, err := cloudsqlconn.NewDialer(ctx)
 	if err != nil {
@@ -198,20 +194,4 @@ func connectMySQLCloudSQL(ctx context.Context, cfg *Config) (*sql.DB, error) {
 	}
 
 	return db, nil
-}
-
-// PostgresDialer is a custom connector for CloudSQL PostgreSQL
-type PostgresDialer struct {
-	dialer       *cloudsqlconn.Dialer
-	instanceName string
-	usePrivateIP bool
-}
-
-// NewPostgresDialer creates a new PostgreSQL dialer for CloudSQL
-func NewPostgresDialer(dialer *cloudsqlconn.Dialer, instanceName string, usePrivateIP bool) *PostgresDialer {
-	return &PostgresDialer{
-		dialer:       dialer,
-		instanceName: instanceName,
-		usePrivateIP: usePrivateIP,
-	}
 }
