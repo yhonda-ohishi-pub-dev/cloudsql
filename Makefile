@@ -5,7 +5,7 @@
 .PHONY: cloudsql-pg-stop cloudsql-pg-start cloudsql-mysql-stop cloudsql-mysql-start
 .PHONY: test-rls test-integration test-all test-cloudsql-auth
 .PHONY: proxy-start proxy-stop
-.PHONY: proto-gen proto-clean proto-lint
+.PHONY: proto-gen proto-clean proto-lint proto-test
 
 # Build settings
 BINARY_NAME=migrate
@@ -60,6 +60,11 @@ proto-lint:
 proto-format:
 	@echo "Formatting proto files..."
 	buf format -w
+
+# Test proto-DB schema consistency
+proto-test:
+	@echo "Testing proto-DB schema consistency..."
+	go test -v -run TestProto ./tests/...
 
 #
 # Migration commands
@@ -226,6 +231,7 @@ help:
 	@echo "  make proto-clean    - Clean generated protobuf code"
 	@echo "  make proto-lint     - Lint proto files"
 	@echo "  make proto-format   - Format proto files"
+	@echo "  make proto-test     - Test proto-DB schema consistency"
 	@echo ""
 	@echo "Local Development:"
 	@echo "  make docker-up      - Start local PostgreSQL and MySQL"

@@ -1,0 +1,761 @@
+syntax = "proto3";
+
+package models;
+
+option go_package = "github.com/yourorg/cloudsql-migrate/pkg/pb;pb";
+
+import "google/protobuf/timestamp.proto";
+
+// ============================================================================
+// CORE TABLES (Multi-tenant foundation)
+// ============================================================================
+
+// Organization represents a tenant/company
+// DB: organizations (000001_organizations.up.sql)
+message Organization {
+  string id = 1;  // UUID
+  string name = 2;
+  string slug = 3;  // URL-friendly identifier
+  google.protobuf.Timestamp created_at = 4;
+  google.protobuf.Timestamp updated_at = 5;
+  optional google.protobuf.Timestamp deleted_at = 6;  // Soft delete
+}
+
+// AppUser represents an application user linked to IAM authentication
+// DB: app_users (000002_app_users.up.sql)
+message AppUser {
+  string id = 1;  // UUID
+  string iam_email = 2;  // IAM authentication email
+  string display_name = 3;
+  bool is_superadmin = 4;  // Access to all organizations
+  google.protobuf.Timestamp created_at = 5;
+  google.protobuf.Timestamp updated_at = 6;
+  optional google.protobuf.Timestamp deleted_at = 7;  // Soft delete
+}
+
+// UserOrganization represents the many-to-many relationship between users and organizations
+// DB: user_organizations (000002_app_users.up.sql)
+message UserOrganization {
+  string id = 1;  // UUID
+  string user_id = 2;  // UUID, FK to app_users
+  string organization_id = 3;  // UUID, FK to organizations
+  string role = 4;  // 'admin', 'member', 'viewer'
+  bool is_default = 5;  // Default organization
+  google.protobuf.Timestamp created_at = 6;
+  google.protobuf.Timestamp updated_at = 7;
+}
+
+// ============================================================================
+// FILE TABLES
+// ============================================================================
+
+// File represents a generic file
+// DB: files (000003_base_tables.up.sql)
+message File {
+  string uuid = 1;
+  string organization_id = 2;  // UUID, FK to organizations
+  string filename = 3;
+  string created = 4;  // TEXT date
+  string deleted = 5;  // TEXT date (empty if not deleted)
+  string type = 6;
+  optional string blob = 7;
+}
+
+// FlickrPhoto represents Flickr photo metadata
+// DB: flickr_photo (000003_base_tables.up.sql)
+message FlickrPhoto {
+  string id = 1;
+  string organization_id = 2;  // UUID, FK to organizations
+  string secret = 3;
+  string server = 4;
+}
+
+// ============================================================================
+// CAMERA FILES TABLES
+// ============================================================================
+
+// CamFileExeStage represents camera file execution stage
+// DB: cam_file_exe_stage (000003_base_tables.up.sql)
+message CamFileExeStage {
+  int32 stage = 1;  // PK part
+  string organization_id = 2;  // UUID, PK part
+  string name = 3;
+}
+
+// CamFileExe represents camera file execution
+// DB: cam_file_exe (000003_base_tables.up.sql)
+message CamFileExe {
+  string name = 1;  // PK part
+  string cam = 2;  // PK part
+  string organization_id = 3;  // UUID, PK part
+  int32 stage = 4;
+}
+
+// CamFiles represents camera files
+// DB: cam_files (000003_base_tables.up.sql)
+message CamFile {
+  string name = 1;  // PK part
+  string organization_id = 2;  // UUID, PK part
+  string date = 3;
+  string hour = 4;
+  string type = 5;
+  string cam = 6;
+  optional string flickr_id = 7;
+}
+
+// ============================================================================
+// CAR INSPECTION TABLES
+// ============================================================================
+
+// CarInspection represents car inspection records
+// DB: car_inspection (000003_base_tables.up.sql)
+message CarInspection {
+  string organization_id = 1;  // UUID, PK part
+  string cert_info_import_file_version = 2;
+  string accept_output_no = 3;
+  string form_type = 4;
+  string elect_cert_mg_no = 5;  // PK part
+  string car_id = 6;
+  string elect_cert_publishdate_e = 7;  // PK part
+  string elect_cert_publishdate_y = 8;  // PK part
+  string elect_cert_publishdate_m = 9;  // PK part
+  string elect_cert_publishdate_d = 10;  // PK part
+  string grantdate_e = 11;
+  string grantdate_y = 12;
+  string grantdate_m = 13;
+  string grantdate_d = 14;
+  string transpotation_bureau_chief_name = 15;
+  string entry_no_car_no = 16;
+  string reg_grantdate_e = 17;
+  string reg_grantdate_y = 18;
+  string reg_grantdate_m = 19;
+  string reg_grantdate_d = 20;
+  string first_regist_date_e = 21;
+  string first_regist_date_y = 22;
+  string first_regist_date_m = 23;
+  string car_name = 24;
+  string car_name_code = 25;
+  string car_no = 26;
+  string model = 27;
+  string engine_model = 28;
+  string owner_name_low_level_char = 29;
+  string owner_name_high_level_char = 30;
+  string owner_address_char = 31;
+  string owner_address_num_value = 32;
+  string owner_address_code = 33;
+  string user_name_low_level_char = 34;
+  string user_name_high_level_char = 35;
+  string user_address_char = 36;
+  string user_address_num_value = 37;
+  string user_address_code = 38;
+  string use_headqurter_char = 39;
+  string use_headqurter_num_value = 40;
+  string use_headqurter_code = 41;
+  string car_kind = 42;
+  string use = 43;
+  string private_business = 44;
+  string car_shape = 45;
+  string car_shape_code = 46;
+  string note_cap = 47;
+  string cap = 48;
+  string note_max_loadage = 49;
+  string max_loadage = 50;
+  string note_car_wgt = 51;
+  string car_wgt = 52;
+  string note_car_total_wgt = 53;
+  string car_total_wgt = 54;
+  string note_length = 55;
+  string length = 56;
+  string note_width = 57;
+  string width = 58;
+  string note_height = 59;
+  string height = 60;
+  string ff_ax_wgt = 61;
+  string fr_ax_wgt = 62;
+  string rf_ax_wgt = 63;
+  string rr_ax_wgt = 64;
+  string displacement = 65;
+  string fuel_class = 66;
+  string model_specify_no = 67;
+  string classify_around_no = 68;
+  string valid_period_expir_date_e = 69;
+  string valid_period_expir_date_y = 70;
+  string valid_period_expir_date_m = 71;
+  string valid_period_expir_date_d = 72;
+  string note_info = 73;
+  string twodimension_code_info_entry_no_car_no = 74;
+  string twodimension_code_info_car_no = 75;
+  string twodimension_code_info_valid_period_expir_date = 76;
+  string twodimension_code_info_model = 77;
+  string twodimension_code_info_model_specify_no_classify_around_no = 78;
+  string twodimension_code_info_char_info = 79;
+  string twodimension_code_info_engine_model = 80;
+  string twodimension_code_info_car_no_stamp_place = 81;
+  string twodimension_code_info_first_regist_date = 82;
+  string twodimension_code_info_ff_ax_wgt = 83;
+  string twodimension_code_info_fr_ax_wgt = 84;
+  string twodimension_code_info_rf_ax_wgt = 85;
+  string twodimension_code_info_rr_ax_wgt = 86;
+  string twodimension_code_info_noise_reg = 87;
+  string twodimension_code_info_near_noise_reg = 88;
+  string twodimension_code_info_drive_method = 89;
+  string twodimension_code_info_opacimeter_meas_car = 90;
+  string twodimension_code_info_nox_pm_meas_mode = 91;
+  string twodimension_code_info_nox_value = 92;
+  string twodimension_code_info_pm_value = 93;
+  string twodimension_code_info_safe_std_date = 94;
+  string twodimension_code_info_fuel_class_code = 95;
+  string regist_car_light_car = 96;
+  string created = 97;
+  string modified = 98;
+}
+
+// CarInspectionFiles represents car inspection file records
+// DB: car_inspection_files (000003_base_tables.up.sql)
+message CarInspectionFiles {
+  string uuid = 1;  // PK
+  string organization_id = 2;  // UUID, FK to organizations
+  string type = 3;
+  string elect_cert_mg_no = 4;
+  string elect_cert_publishdate_e = 5;
+  string elect_cert_publishdate_y = 6;
+  string elect_cert_publishdate_m = 7;
+  string elect_cert_publishdate_d = 8;
+  string created = 9;
+  string modified = 10;
+  optional string deleted = 11;
+}
+
+// CarInspectionFilesA represents car inspection file records (type A)
+// DB: car_inspection_files_a (000003_base_tables.up.sql)
+message CarInspectionFilesA {
+  string uuid = 1;  // PK
+  string organization_id = 2;  // UUID, FK to organizations
+  string type = 3;
+  string elect_cert_mg_no = 4;
+  string grantdate_e = 5;
+  string grantdate_y = 6;
+  string grantdate_m = 7;
+  string grantdate_d = 8;
+  string created = 9;
+  string modified = 10;
+  optional string deleted = 11;
+}
+
+// CarInspectionFilesB represents car inspection file records (type B)
+// DB: car_inspection_files_b (000003_base_tables.up.sql)
+message CarInspectionFilesB {
+  string uuid = 1;  // PK
+  string organization_id = 2;  // UUID, FK to organizations
+  string type = 3;
+  string elect_cert_mg_no = 4;
+  string grantdate_e = 5;
+  string grantdate_y = 6;
+  string grantdate_m = 7;
+  string grantdate_d = 8;
+  string created = 9;
+  string modified = 10;
+  optional string deleted = 11;
+}
+
+// CarInspectionDeregistration represents car deregistration records
+// DB: car_inspection_deregistration (000003_base_tables.up.sql)
+message CarInspectionDeregistration {
+  string organization_id = 1;  // UUID, PK part
+  string car_id = 2;  // PK part
+  string twodimension_code_info_car_no = 3;
+  string car_no = 4;
+  string valid_period_expir_date_e = 5;
+  string valid_period_expir_date_y = 6;
+  string valid_period_expir_date_m = 7;
+  string valid_period_expir_date_d = 8;
+  string twodimension_code_info_valid_period_expir_date = 9;  // PK part
+}
+
+// CarInspectionDeregistrationFiles represents deregistration file references
+// DB: car_inspection_deregistration_files (000003_base_tables.up.sql)
+message CarInspectionDeregistrationFiles {
+  string organization_id = 1;  // UUID, PK part
+  string car_id = 2;  // PK part
+  string twodimension_code_info_valid_period_expir_date = 3;  // PK part
+  string file_uuid = 4;  // PK part, FK to files
+}
+
+// CarInsSheetIchibanCars represents car inspection sheet records
+// DB: car_ins_sheet_ichiban_cars (000003_base_tables.up.sql)
+message CarInsSheetIchibanCars {
+  string organization_id = 1;  // UUID, PK part
+  optional string id_cars = 2;
+  string elect_cert_mg_no = 3;  // PK part
+  string elect_cert_publishdate_e = 4;  // PK part
+  string elect_cert_publishdate_y = 5;  // PK part
+  string elect_cert_publishdate_m = 6;  // PK part
+  string elect_cert_publishdate_d = 7;  // PK part
+}
+
+// CarInsSheetIchibanCarsA represents car inspection sheet records (type A)
+// DB: car_ins_sheet_ichiban_cars_a (000003_base_tables.up.sql)
+message CarInsSheetIchibanCarsA {
+  string organization_id = 1;  // UUID, PK part
+  optional string id_cars = 2;
+  string elect_cert_mg_no = 3;  // PK part
+  string grantdate_e = 4;  // PK part
+  string grantdate_y = 5;  // PK part
+  string grantdate_m = 6;  // PK part
+  string grantdate_d = 7;  // PK part
+}
+
+// ============================================================================
+// CAR REGISTRY TABLES
+// ============================================================================
+
+// IchibanCars represents vehicle registry
+// DB: ichiban_cars (000003_base_tables.up.sql)
+message IchibanCars {
+  string id = 1;  // PK part
+  string organization_id = 2;  // UUID, PK part
+  string id4 = 3;
+  optional string name = 4;
+  optional string name_r = 5;
+  string shashu = 6;  // Vehicle type
+  optional double sekisai = 7;  // Load capacity (NUMERIC)
+  optional string reg_date = 8;
+  optional string parch_date = 9;
+  optional string scrap_date = 10;
+  optional string bumon_code_id = 11;
+  optional string driver_id = 12;
+}
+
+// DtakoCarsIchibanCars represents link between dtako cars and ichiban_cars
+// DB: dtako_cars_ichiban_cars (000003_base_tables.up.sql)
+message DtakoCarsIchibanCars {
+  string id_dtako = 1;  // PK part
+  string organization_id = 2;  // UUID, PK part
+  optional string id = 3;  // FK to ichiban_cars
+}
+
+// ============================================================================
+// KUDGURI TABLES (Vehicle Tracking System)
+// ============================================================================
+
+// Kudguri represents vehicle tracking records
+// DB: kudguri (000003_base_tables.up.sql)
+message Kudguri {
+  string uuid = 1;  // PK
+  string organization_id = 2;  // UUID, FK to organizations
+  string hash = 3;
+  string created = 4;
+  optional string deleted = 5;
+  string unkou_no = 6;  // Operation number
+  string kudguri_uuid = 7;
+  optional string read_date = 8;
+  optional string office_cd = 9;
+  optional string office_name = 10;
+  optional string vehicle_cd = 11;
+  optional string vehicle_name = 12;
+  optional string driver_cd1 = 13;
+  optional string driver_name1 = 14;
+  string target_driver_type = 15;
+  optional string target_driver_cd = 16;
+  optional string target_driver_name = 17;
+  optional string start_datetime = 18;
+  optional string end_datetime = 19;
+  optional string event_cd = 20;
+  optional string event_name = 21;
+  optional string start_mileage = 22;
+  optional string end_mileage = 23;
+  optional string section_time = 24;
+  optional string section_distance = 25;
+  optional string start_city_cd = 26;
+  optional string start_city_name = 27;
+  optional string end_city_cd = 28;
+  optional string end_city_name = 29;
+  optional string start_place_cd = 30;
+  optional string start_place_name = 31;
+  optional string end_place_cd = 32;
+  optional string end_place_name = 33;
+  optional string start_gps_valid = 34;
+  optional string start_gps_lat = 35;
+  optional string start_gps_lng = 36;
+  optional string end_gps_valid = 37;
+  optional string end_gps_lat = 38;
+  optional string end_gps_lng = 39;
+  optional string over_limit_max = 40;
+}
+
+// Kudgcst represents ferry cost records
+// DB: kudgcst (000003_base_tables.up.sql)
+message Kudgcst {
+  string uuid = 1;  // PK
+  string organization_id = 2;  // UUID, FK to organizations
+  string hash = 3;
+  string created = 4;
+  optional string deleted = 5;
+  optional string kudguri_uuid = 6;  // FK to kudguri
+  optional string unkou_no = 7;
+  optional string unkou_date = 8;
+  optional string read_date = 9;
+  optional string office_cd = 10;
+  optional string office_name = 11;
+  optional string vehicle_cd = 12;
+  optional string vehicle_name = 13;
+  optional string driver_cd1 = 14;
+  optional string driver_name1 = 15;
+  string target_driver_type = 16;
+  optional string start_datetime = 17;
+  optional string end_datetime = 18;
+  optional string ferry_company_cd = 19;
+  optional string ferry_company_name = 20;
+  optional string boarding_place_cd = 21;
+  optional string boarding_place_name = 22;
+  optional string trip_number = 23;
+  optional string dropoff_place_cd = 24;
+  optional string dropoff_place_name = 25;
+  optional string settlement_type = 26;
+  optional string settlement_type_name = 27;
+  optional string standard_fare = 28;
+  optional string contract_fare = 29;
+  optional string ferry_vehicle_type = 30;
+  optional string ferry_vehicle_type_name = 31;
+  optional string assumed_distance = 32;
+}
+
+// Kudgfry represents refuel/inspection records
+// DB: kudgfry (000003_base_tables.up.sql)
+message Kudgfry {
+  string uuid = 1;  // PK
+  string organization_id = 2;  // UUID, FK to organizations
+  string hash = 3;
+  string created = 4;
+  optional string deleted = 5;
+  optional string kudguri_uuid = 6;  // FK to kudguri
+  string target_driver_type = 7;
+  optional string unkou_no = 8;
+  optional string unkou_date = 9;
+  optional string read_date = 10;
+  optional string office_cd = 11;
+  optional string office_name = 12;
+  optional string vehicle_cd = 13;
+  optional string vehicle_name = 14;
+  optional string driver_cd1 = 15;
+  optional string driver_name1 = 16;
+  optional string driver_cd2 = 17;
+  optional string driver_name2 = 18;
+  optional string relevant_datetime = 19;
+  optional string refuel_inspect_category = 20;
+  optional string refuel_inspect_category_name = 21;
+  optional string refuel_inspect_type = 22;
+  optional string refuel_inspect_type_name = 23;
+  optional string refuel_inspect_kind = 24;
+  optional string refuel_inspect_kind_name = 25;
+  optional string refill_amount = 26;
+  optional string own_other_type = 27;
+  optional string mileage = 28;
+  optional string meter_value = 29;
+}
+
+// Kudgful represents full tracking records
+// DB: kudgful (000003_base_tables.up.sql)
+message Kudgful {
+  string uuid = 1;  // PK
+  string organization_id = 2;  // UUID, FK to organizations
+  string hash = 3;
+  string created = 4;
+  optional string deleted = 5;
+  optional string kudguri_uuid = 6;  // FK to kudguri
+  optional string unkou_no = 7;
+  optional string read_date = 8;
+  optional string office_cd = 9;
+  optional string office_name = 10;
+  optional string vehicle_cd = 11;
+  optional string vehicle_name = 12;
+  optional string driver_cd1 = 13;
+  optional string driver_name1 = 14;
+  string target_driver_type = 15;
+  optional string target_driver_cd = 16;
+  optional string target_driver_name = 17;
+  optional string start_datetime = 18;
+  optional string end_datetime = 19;
+  optional string event_cd = 20;
+  optional string event_name = 21;
+  optional string start_mileage = 22;
+  optional string end_mileage = 23;
+  optional string section_time = 24;
+  optional string section_distance = 25;
+  optional string start_city_cd = 26;
+  optional string start_city_name = 27;
+  optional string end_city_cd = 28;
+  optional string end_city_name = 29;
+  optional string start_place_cd = 30;
+  optional string start_place_name = 31;
+  optional string end_place_cd = 32;
+  optional string end_place_name = 33;
+  optional string start_gps_valid = 34;
+  optional string start_gps_lat = 35;
+  optional string start_gps_lng = 36;
+  optional string end_gps_valid = 37;
+  optional string end_gps_lat = 38;
+  optional string end_gps_lng = 39;
+  optional string over_limit_max = 40;
+}
+
+// Kudgivt represents inventory/driving score records
+// DB: kudgivt (000003_base_tables.up.sql)
+message Kudgivt {
+  string uuid = 1;  // PK
+  string organization_id = 2;  // UUID, FK to organizations
+  string hash = 3;
+  string created = 4;
+  optional string deleted = 5;
+  optional string kudguri_uuid = 6;  // FK to kudguri
+  optional string unkou_no = 7;
+  optional string read_date = 8;
+  optional string unkou_date = 9;
+  optional string office_cd = 10;
+  optional string office_name = 11;
+  optional string vehicle_cd = 12;
+  optional string vehicle_name = 13;
+  optional string driver_cd1 = 14;
+  optional string driver_name1 = 15;
+  string target_driver_type = 16;
+  optional string target_driver_cd = 17;
+  optional string target_driver_name = 18;
+  optional string clock_in_datetime = 19;
+  optional string clock_out_datetime = 20;
+  optional string departure_datetime = 21;
+  optional string return_datetime = 22;
+  optional string departure_meter = 23;
+  optional string return_meter = 24;
+  optional string total_mileage = 25;
+  optional string destination_city_name = 26;
+  optional string destination_place_name = 27;
+  optional string actual_mileage = 28;
+  optional string local_drive_time = 29;
+  optional string express_drive_time = 30;
+  optional string bypass_drive_time = 31;
+  optional string actual_drive_time = 32;
+  optional string empty_drive_time = 33;
+  optional string work1_time = 34;
+  optional string work2_time = 35;
+  optional string work3_time = 36;
+  optional string work4_time = 37;
+  optional string work5_time = 38;
+  optional string work6_time = 39;
+  optional string work7_time = 40;
+  optional string work8_time = 41;
+  optional string work9_time = 42;
+  optional string work10_time = 43;
+  optional string state1_distance = 44;
+  optional string state1_time = 45;
+  optional string state2_distance = 46;
+  optional string state2_time = 47;
+  optional string state3_distance = 48;
+  optional string state3_time = 49;
+  optional string state4_distance = 50;
+  optional string state4_time = 51;
+  optional string state5_distance = 52;
+  optional string state5_time = 53;
+  optional string own_main_fuel = 54;
+  optional string own_main_additive = 55;
+  optional string own_consumable = 56;
+  optional string other_main_fuel = 57;
+  optional string other_main_additive = 58;
+  optional string other_consumable = 59;
+  optional string local_speed_over_max = 60;
+  optional string local_speed_over_time = 61;
+  optional string local_speed_over_count = 62;
+  optional string express_speed_over_max = 63;
+  optional string express_speed_over_time = 64;
+  optional string express_speed_over_count = 65;
+  optional string dedicated_speed_over_max = 66;
+  optional string dedicated_speed_over_time = 67;
+  optional string dedicated_speed_over_count = 68;
+  optional string idling_time = 69;
+  optional string idling_time_count = 70;
+  optional string rotation_over_max = 71;
+  optional string rotation_over_count = 72;
+  optional string rotation_over_time = 73;
+  optional string rapid_accel_count1 = 74;
+  optional string rapid_accel_count2 = 75;
+  optional string rapid_accel_count3 = 76;
+  optional string rapid_accel_count4 = 77;
+  optional string rapid_accel_count5 = 78;
+  optional string rapid_accel_max = 79;
+  optional string rapid_accel_max_speed = 80;
+  optional string rapid_decel_count1 = 81;
+  optional string rapid_decel_count2 = 82;
+  optional string rapid_decel_count3 = 83;
+  optional string rapid_decel_count4 = 84;
+  optional string rapid_decel_count5 = 85;
+  optional string rapid_decel_max = 86;
+  optional string rapid_decel_max_speed = 87;
+  optional string rapid_curve_count1 = 88;
+  optional string rapid_curve_count2 = 89;
+  optional string rapid_curve_count3 = 90;
+  optional string rapid_curve_count4 = 91;
+  optional string rapid_curve_count5 = 92;
+  optional string rapid_curve_max = 93;
+  optional string rapid_curve_max_speed = 94;
+  optional string continuous_drive_over_count = 95;
+  optional string continuous_drive_max_time = 96;
+  optional string continuous_drive_total_time = 97;
+  optional string wave_drive_count = 98;
+  optional string wave_drive_max_time = 99;
+  optional string wave_drive_max_speed_diff = 100;
+  optional string local_speed_score = 101;
+  optional string express_speed_score = 102;
+  optional string dedicated_speed_score = 103;
+  optional string local_distance_score = 104;
+  optional string express_distance_score = 105;
+  optional string dedicated_distance_score = 106;
+  optional string rapid_accel_score = 107;
+  optional string rapid_decel_score = 108;
+  optional string rapid_curve_score = 109;
+  optional string actual_low_speed_rotation_score = 110;
+  optional string actual_high_speed_rotation_score = 111;
+  optional string empty_low_speed_rotation_score = 112;
+  optional string empty_high_speed_rotation_score = 113;
+  optional string idling_score = 114;
+  optional string continuous_drive_score = 115;
+  optional string wave_drive_score = 116;
+  optional string safety_score = 117;
+  optional string economy_score = 118;
+  optional string total_score = 119;
+}
+
+// Kudgsir represents section/route records
+// DB: kudgsir (000003_base_tables.up.sql)
+message Kudgsir {
+  string uuid = 1;  // PK
+  string organization_id = 2;  // UUID, FK to organizations
+  string hash = 3;
+  string created = 4;
+  optional string deleted = 5;
+  optional string kudguri_uuid = 6;  // FK to kudguri
+  optional string unkou_no = 7;
+  optional string read_date = 8;
+  optional string office_cd = 9;
+  optional string office_name = 10;
+  optional string vehicle_cd = 11;
+  optional string vehicle_name = 12;
+  optional string driver_cd1 = 13;
+  optional string driver_name1 = 14;
+  string target_driver_type = 15;
+  optional string target_driver_cd = 16;
+  optional string target_driver_name = 17;
+  optional string start_datetime = 18;
+  optional string end_datetime = 19;
+  optional string event_cd = 20;
+  optional string event_name = 21;
+  optional string start_mileage = 22;
+  optional string end_mileage = 23;
+  optional string section_time = 24;
+  optional string section_distance = 25;
+  optional string start_city_cd = 26;
+  optional string start_city_name = 27;
+  optional string end_city_cd = 28;
+  optional string end_city_name = 29;
+  optional string start_place_cd = 30;
+  optional string start_place_name = 31;
+  optional string end_place_cd = 32;
+  optional string end_place_name = 33;
+  optional string start_gps_valid = 34;
+  optional string start_gps_lat = 35;
+  optional string start_gps_lng = 36;
+  optional string end_gps_valid = 37;
+  optional string end_gps_lat = 38;
+  optional string end_gps_lng = 39;
+  optional string over_limit_max = 40;
+}
+
+// ============================================================================
+// SALES TABLES
+// ============================================================================
+
+// Uriage represents sales records
+// DB: uriage (000003_base_tables.up.sql)
+message Uriage {
+  string name = 1;  // PK part
+  string bumon = 2;  // Department, PK part
+  string organization_id = 3;  // UUID, PK part
+  optional int32 kingaku = 4;  // Amount
+  optional int32 type = 5;
+  optional int32 cam = 6;
+  string date = 7;  // PK part
+}
+
+// UriageJisha represents internal sales records
+// DB: uriage_jisha (000003_base_tables.up.sql)
+message UriageJisha {
+  string bumon = 1;  // Department, PK part
+  string organization_id = 2;  // UUID, PK part
+  optional int32 kingaku = 3;  // Amount
+  optional int32 type = 4;
+  string date = 5;  // PK part
+}
+
+// ============================================================================
+// DTAKOLOGS TABLE (Digital Tachograph Logs)
+// ============================================================================
+
+// Dtakologs represents digital tachograph log records
+// DB: dtakologs (000003_base_tables.up.sql)
+message Dtakologs {
+  string organization_id = 1;  // UUID, PK part
+  string type = 2;  // __type
+  optional string address_disp_c = 3;
+  optional string address_disp_p = 4;
+  optional string all_state = 5;
+  optional string all_state_ex = 6;
+  optional string all_state_font_color = 7;
+  int32 all_state_font_color_index = 8;
+  string all_state_ryout_color = 9;
+  int32 branch_cd = 10;
+  string branch_name = 11;
+  optional string comu_date_time = 12;
+  int32 current_work_cd = 13;
+  optional string current_work_name = 14;
+  string data_date_time = 15;  // PK part (default: '20/1/1 00:00')
+  int32 data_filter_type = 16;
+  int32 disp_flag = 17;
+  int32 driver_cd = 18;
+  optional string driver_name = 19;
+  optional string event_val = 20;
+  int32 gps_direction = 21;
+  int32 gps_enable = 22;
+  optional string gps_lati_and_long = 23;
+  int32 gps_latitude = 24;
+  int32 gps_longitude = 25;
+  int32 gps_satellite_num = 26;
+  optional string odo_meter = 27;
+  int32 operation_state = 28;
+  int32 recive_event_type = 29;
+  int32 recive_packet_type = 30;
+  optional string recive_type_color_name = 31;
+  optional string recive_type_name = 32;
+  int32 recive_work_cd = 33;
+  int32 revo = 34;
+  string setting_temp = 35;
+  string setting_temp1 = 36;
+  string setting_temp3 = 37;
+  string setting_temp4 = 38;
+  float speed = 39;
+  optional string start_work_date_time = 40;
+  optional string state = 41;
+  optional string state1 = 42;
+  optional string state2 = 43;
+  optional string state3 = 44;
+  string state_flag = 45;
+  int32 sub_driver_cd = 46;
+  optional string temp1 = 47;
+  optional string temp2 = 48;
+  optional string temp3 = 49;
+  optional string temp4 = 50;
+  int32 temp_state = 51;
+  int32 vehicle_cd = 52;  // PK part
+  optional string vehicle_icon_color = 53;
+  optional string vehicle_icon_label_for_datetime = 54;
+  optional string vehicle_icon_label_for_driver = 55;
+  optional string vehicle_icon_label_for_vehicle = 56;
+  string vehicle_name = 57;
+}

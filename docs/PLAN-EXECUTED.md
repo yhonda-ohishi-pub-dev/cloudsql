@@ -183,3 +183,59 @@ CREATE FUNCTION is_superadmin() RETURNS BOOLEAN;
 - `Makefile` - proto-gen, proto-lint, proto-format, proto-clean ターゲット追加
 - `README.md` - Proto生成手順を拡充
 - `.gitignore` - 生成コードを除外
+
+---
+
+## 完了: proto再構築（DBテーブル対応） (2025-12-06)
+
+### 目的
+protoとDBスキーマの整合性を保証するため、全DBテーブルに対応するprotoメッセージ型を作成。
+
+### 作成ファイル
+
+- `proto/models.proto` - 全29テーブルに対応するprotoメッセージ定義
+  - Core tables: Organization, AppUser, UserOrganization
+  - File tables: File, FlickrPhoto
+  - Camera files: CamFileExeStage, CamFileExe, CamFile
+  - Car inspection: CarInspection, CarInspectionFiles, CarInspectionFilesA/B, CarInspectionDeregistration, etc.
+  - Car registry: IchibanCars, DtakoCarsIchibanCars
+  - Kudguri (Vehicle Tracking): Kudguri, Kudgcst, Kudgfry, Kudgful, Kudgivt, Kudgsir
+  - Sales: Uriage, UriageJisha
+  - Dtakologs
+- `tests/proto_schema_test.go` - proto-DB整合性テスト
+
+### 更新ファイル
+
+- `Makefile` - `proto-test` コマンド追加
+- `buf.yaml` - リントルール調整（PACKAGE_DIRECTORY_MATCH, PACKAGE_VERSION_SUFFIX除外）
+
+### 削除ファイル
+
+- `proto/migration.proto` - DBモデルと関係ないサービス定義のため削除
+
+### テスト結果
+
+```
+=== RUN   TestProtoModelsExist
+--- PASS: TestProtoModelsExist (0.00s)
+=== RUN   TestProtoDBConsistency
+--- PASS: TestProtoDBConsistency (0.00s)
+=== RUN   TestProtoFieldComments
+--- PASS: TestProtoFieldComments (0.00s)
+=== RUN   TestProtoPackageNaming
+--- PASS: TestProtoPackageNaming (0.00s)
+PASS
+```
+
+### 使用方法
+
+```bash
+# proto整合性テスト
+make proto-test
+
+# proto lint
+make proto-lint
+
+# protoからGoコード生成
+make proto-gen
+```
