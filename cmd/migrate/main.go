@@ -9,7 +9,7 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"github.com/yourorg/cloudsql-migrate/internal/database"
+	"github.com/yhonda-ohishi-pub-dev/cloudsql/internal/database"
 )
 
 var (

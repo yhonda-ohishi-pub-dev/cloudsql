@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package models;
 
-option go_package = "github.com/yourorg/cloudsql-migrate/pkg/pb;pb";
+option go_package = "github.com/yhonda-ohishi-pub-dev/cloudsql/pkg/pb;pb";
 
 import "google/protobuf/timestamp.proto";
 

@@ -1,4 +1,4 @@
-module github.com/yourorg/cloudsql-migrate
+module github.com/yhonda-ohishi-pub-dev/cloudsql
 
 go 1.21
 

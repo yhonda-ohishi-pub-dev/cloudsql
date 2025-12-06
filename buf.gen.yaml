@@ -3,7 +3,7 @@ managed:
   enabled: true
   override:
     - file_option: go_package_prefix
-      value: github.com/yourorg/cloudsql-migrate/pkg/pb
+      value: github.com/yhonda-ohishi-pub-dev/cloudsql/pkg/pb
 plugins:
   - remote: buf.build/protocolbuffers/go
     out: pkg/pb
