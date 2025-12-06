@@ -3,9 +3,7 @@ package database
 import (
 	"context"
 	"database/sql"
-	"embed"
 	"fmt"
-	"io/fs"
 	"path/filepath"
 	"strings"
 
@@ -14,7 +12,6 @@ import (
 	"github.com/golang-migrate/migrate/v4/database/mysql"
 	"github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
-	"github.com/golang-migrate/migrate/v4/source/iofs"
 )
 
 // DBType represents the database type
@@ -27,13 +24,13 @@ const (
 
 // Migrator handles database migrations
 type Migrator struct {
-	db        *sql.DB
-	dbType    DBType
-	migrate   *migrate.Migrate
+	db       *sql.DB
+	dbType   DBType
+	migrate  *migrate.Migrate
 	sourceURL string
 }
 
-// NewMigrator creates a new Migrator instance from file path (legacy support)
+// NewMigrator creates a new Migrator instance
 func NewMigrator(db *sql.DB, dbType DBType, migrationsPath string) (*Migrator, error) {
 	// Convert Windows backslashes to forward slashes for file:// URL
 	cleanPath := filepath.ToSlash(migrationsPath)
@@ -69,86 +66,6 @@ func NewMigrator(db *sql.DB, dbType DBType, migrationsPath string) (*Migrator, e
 		dbType:    dbType,
 		migrate:   m,
 		sourceURL: sourceURL,
-	}, nil
-}
-
-// NewMigratorFromFS creates a new Migrator instance from embed.FS
-// This is the recommended way to use migrations from shared packages.
-//
-// Usage:
-//
-//	import "github.com/yourorg/cloudsql-migrate/pkg/schema"
-//	fs, path := schema.GetPostgresFS()
-//	migrator, err := database.NewMigratorFromFS(db, database.DBTypePostgres, fs, path)
-func NewMigratorFromFS(db *sql.DB, dbType DBType, embedFS embed.FS, path string) (*Migrator, error) {
-	// Create iofs source from embed.FS
-	source, err := iofs.New(embedFS, path)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create iofs source: %w", err)
-	}
-
-	var driver database.Driver
-
-	switch dbType {
-	case DBTypePostgres:
-		driver, err = postgres.WithInstance(db, &postgres.Config{})
-	case DBTypeMySQL:
-		driver, err = mysql.WithInstance(db, &mysql.Config{})
-	default:
-		return nil, fmt.Errorf("unsupported database type: %s", dbType)
-	}
-
-	if err != nil {
-		return nil, fmt.Errorf("failed to create database driver: %w", err)
-	}
-
-	m, err := migrate.NewWithInstance("iofs", source, string(dbType), driver)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create migrate instance: %w", err)
-	}
-
-	return &Migrator{
-		db:        db,
-		dbType:    dbType,
-		migrate:   m,
-		sourceURL: fmt.Sprintf("embed://%s", path),
-	}, nil
-}
-
-// NewMigratorFromSubFS creates a new Migrator instance from fs.FS (for sub-filesystem)
-// Useful when you need to use fs.Sub() to get a subdirectory.
-func NewMigratorFromSubFS(db *sql.DB, dbType DBType, fsys fs.FS, path string) (*Migrator, error) {
-	// Create iofs source from fs.FS
-	source, err := iofs.New(fsys, path)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create iofs source: %w", err)
-	}
-
-	var driver database.Driver
-
-	switch dbType {
-	case DBTypePostgres:
-		driver, err = postgres.WithInstance(db, &postgres.Config{})
-	case DBTypeMySQL:
-		driver, err = mysql.WithInstance(db, &mysql.Config{})
-	default:
-		return nil, fmt.Errorf("unsupported database type: %s", dbType)
-	}
-
-	if err != nil {
-		return nil, fmt.Errorf("failed to create database driver: %w", err)
-	}
-
-	m, err := migrate.NewWithInstance("iofs", source, string(dbType), driver)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create migrate instance: %w", err)
-	}
-
-	return &Migrator{
-		db:        db,
-		dbType:    dbType,
-		migrate:   m,
-		sourceURL: fmt.Sprintf("fs://%s", path),
 	}, nil
 }
 
@@ -206,7 +123,7 @@ func (m *Migrator) Close() error {
 	return nil
 }
 
-// RunMigrations is a convenience function to run migrations from file path
+// RunMigrations is a convenience function to run migrations
 func RunMigrations(ctx context.Context, cfg *Config, dbType DBType, migrationsPath string) error {
 	var db *sql.DB
 	var err error
@@ -226,38 +143,6 @@ func RunMigrations(ctx context.Context, cfg *Config, dbType DBType, migrationsPa
 	defer db.Close()
 
 	migrator, err := NewMigrator(db, dbType, migrationsPath)
-	if err != nil {
-		return fmt.Errorf("failed to create migrator: %w", err)
-	}
-	defer migrator.Close()
-
-	if err := migrator.Up(); err != nil {
-		return fmt.Errorf("failed to run migrations: %w", err)
-	}
-
-	return nil
-}
-
-// RunMigrationsFromFS is a convenience function to run migrations from embed.FS
-func RunMigrationsFromFS(ctx context.Context, cfg *Config, dbType DBType, embedFS embed.FS, path string) error {
-	var db *sql.DB
-	var err error
-
-	switch dbType {
-	case DBTypePostgres:
-		db, err = ConnectPostgres(ctx, cfg)
-	case DBTypeMySQL:
-		db, err = ConnectMySQL(ctx, cfg)
-	default:
-		return fmt.Errorf("unsupported database type: %s", dbType)
-	}
-
-	if err != nil {
-		return fmt.Errorf("failed to connect to database: %w", err)
-	}
-	defer db.Close()
-
-	migrator, err := NewMigratorFromFS(db, dbType, embedFS, path)
 	if err != nil {
 		return fmt.Errorf("failed to create migrator: %w", err)
 	}

@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"database/sql"
-	"embed"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -11,13 +10,11 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"github.com/yourorg/cloudsql-migrate/internal/database"
-	"github.com/yourorg/cloudsql-migrate/pkg/schema"
 )
 
 var (
-	cfgFile  string
-	dbType   string
-	useEmbed bool
+	cfgFile string
+	dbType  string
 )
 
 func main() {
@@ -89,7 +86,6 @@ func init() {
 	// Global flags
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is ./configs/config.yaml)")
 	rootCmd.PersistentFlags().StringVar(&dbType, "db", "postgres", "database type (postgres or mysql)")
-	rootCmd.PersistentFlags().BoolVar(&useEmbed, "embed", false, "use embedded migrations from pkg/schema")
 
 	// Database connection flags
 	rootCmd.PersistentFlags().String("host", "localhost", "database host")
@@ -183,6 +179,7 @@ func runMigration(action string) error {
 	ctx := context.Background()
 	cfg := getConfig()
 	dbTypeEnum := getDBType()
+	migrationsPath := getMigrationsPath()
 
 	// Validate CloudSQL configuration (IAM auth required, no password)
 	if err := cfg.ValidateCloudSQL(); err != nil {
@@ -205,29 +202,9 @@ func runMigration(action string) error {
 
 	sqlDB := db.(*sql.DB)
 
-	// Create migrator (embed or file-based)
-	var migrator *database.Migrator
-	if useEmbed {
-		var embedFS embed.FS
-		var path string
-		switch dbTypeEnum {
-		case database.DBTypePostgres:
-			embedFS, path = schema.GetPostgresFS()
-		case database.DBTypeMySQL:
-			embedFS, path = schema.GetMySQLFS()
-		}
-		migrator, err = database.NewMigratorFromFS(sqlDB, dbTypeEnum, embedFS, path)
-		if err != nil {
-			return fmt.Errorf("failed to create migrator from embed: %w", err)
-		}
-		fmt.Println("Using embedded migrations from pkg/schema")
-	} else {
-		migrationsPath := getMigrationsPath()
-		migrator, err = database.NewMigrator(sqlDB, dbTypeEnum, migrationsPath)
-		if err != nil {
-			return fmt.Errorf("failed to create migrator: %w", err)
-		}
-		fmt.Printf("Using file-based migrations from %s\n", migrationsPath)
+	migrator, err := database.NewMigrator(sqlDB, dbTypeEnum, migrationsPath)
+	if err != nil {
+		return fmt.Errorf("failed to create migrator: %w", err)
 	}
 	defer migrator.Close()
 
