@@ -46,6 +46,21 @@ message UserOrganization {
   google.protobuf.Timestamp updated_at = 7;
 }
 
+// OAuthAccount represents OAuth2 provider accounts linked to a user
+// DB: oauth_accounts (000006_oauth_accounts.up.sql)
+message OAuthAccount {
+  string id = 1;  // UUID
+  string app_user_id = 2;  // UUID, FK to app_users
+  string provider = 3;  // 'google', 'line'
+  string provider_user_id = 4;
+  optional string email = 5;
+  optional string access_token = 6;
+  optional string refresh_token = 7;
+  optional google.protobuf.Timestamp token_expires_at = 8;
+  google.protobuf.Timestamp created_at = 9;
+  google.protobuf.Timestamp updated_at = 10;
+}
+
 // ============================================================================
 // FILE TABLES
 // ============================================================================

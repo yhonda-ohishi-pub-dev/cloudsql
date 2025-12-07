@@ -304,6 +304,124 @@ func (x *UserOrganization) GetUpdatedAt() *timestamppb.Timestamp {
 	return nil
 }
 
+// OAuthAccount represents OAuth2 provider accounts linked to a user
+// DB: oauth_accounts (000006_oauth_accounts.up.sql)
+type OAuthAccount struct {
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	Id             string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`                                  // UUID
+	AppUserId      string                 `protobuf:"bytes,2,opt,name=app_user_id,json=appUserId,proto3" json:"app_user_id,omitempty"` // UUID, FK to app_users
+	Provider       string                 `protobuf:"bytes,3,opt,name=provider,proto3" json:"provider,omitempty"`                      // 'google', 'line'
+	ProviderUserId string                 `protobuf:"bytes,4,opt,name=provider_user_id,json=providerUserId,proto3" json:"provider_user_id,omitempty"`
+	Email          *string                `protobuf:"bytes,5,opt,name=email,proto3,oneof" json:"email,omitempty"`
+	AccessToken    *string                `protobuf:"bytes,6,opt,name=access_token,json=accessToken,proto3,oneof" json:"access_token,omitempty"`
+	RefreshToken   *string                `protobuf:"bytes,7,opt,name=refresh_token,json=refreshToken,proto3,oneof" json:"refresh_token,omitempty"`
+	TokenExpiresAt *timestamppb.Timestamp `protobuf:"bytes,8,opt,name=token_expires_at,json=tokenExpiresAt,proto3,oneof" json:"token_expires_at,omitempty"`
+	CreatedAt      *timestamppb.Timestamp `protobuf:"bytes,9,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	UpdatedAt      *timestamppb.Timestamp `protobuf:"bytes,10,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
+}
+
+func (x *OAuthAccount) Reset() {
+	*x = OAuthAccount{}
+	mi := &file_models_proto_msgTypes[3]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *OAuthAccount) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*OAuthAccount) ProtoMessage() {}
+
+func (x *OAuthAccount) ProtoReflect() protoreflect.Message {
+	mi := &file_models_proto_msgTypes[3]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use OAuthAccount.ProtoReflect.Descriptor instead.
+func (*OAuthAccount) Descriptor() ([]byte, []int) {
+	return file_models_proto_rawDescGZIP(), []int{3}
+}
+
+func (x *OAuthAccount) GetId() string {
+	if x != nil {
+		return x.Id
+	}
+	return ""
+}
+
+func (x *OAuthAccount) GetAppUserId() string {
+	if x != nil {
+		return x.AppUserId
+	}
+	return ""
+}
+
+func (x *OAuthAccount) GetProvider() string {
+	if x != nil {
+		return x.Provider
+	}
+	return ""
+}
+
+func (x *OAuthAccount) GetProviderUserId() string {
+	if x != nil {
+		return x.ProviderUserId
+	}
+	return ""
+}
+
+func (x *OAuthAccount) GetEmail() string {
+	if x != nil && x.Email != nil {
+		return *x.Email
+	}
+	return ""
+}
+
+func (x *OAuthAccount) GetAccessToken() string {
+	if x != nil && x.AccessToken != nil {
+		return *x.AccessToken
+	}
+	return ""
+}
+
+func (x *OAuthAccount) GetRefreshToken() string {
+	if x != nil && x.RefreshToken != nil {
+		return *x.RefreshToken
+	}
+	return ""
+}
+
+func (x *OAuthAccount) GetTokenExpiresAt() *timestamppb.Timestamp {
+	if x != nil {
+		return x.TokenExpiresAt
+	}
+	return nil
+}
+
+func (x *OAuthAccount) GetCreatedAt() *timestamppb.Timestamp {
+	if x != nil {
+		return x.CreatedAt
+	}
+	return nil
+}
+
+func (x *OAuthAccount) GetUpdatedAt() *timestamppb.Timestamp {
+	if x != nil {
+		return x.UpdatedAt
+	}
+	return nil
+}
+
 // File represents a generic file
 // DB: files (000003_base_tables.up.sql)
 type File struct {
@@ -321,7 +439,7 @@ type File struct {
 
 func (x *File) Reset() {
 	*x = File{}
-	mi := &file_models_proto_msgTypes[3]
+	mi := &file_models_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -333,7 +451,7 @@ func (x *File) String() string {
 func (*File) ProtoMessage() {}
 
 func (x *File) ProtoReflect() protoreflect.Message {
-	mi := &file_models_proto_msgTypes[3]
+	mi := &file_models_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -346,7 +464,7 @@ func (x *File) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use File.ProtoReflect.Descriptor instead.
 func (*File) Descriptor() ([]byte, []int) {
-	return file_models_proto_rawDescGZIP(), []int{3}
+	return file_models_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *File) GetUuid() string {
@@ -412,7 +530,7 @@ type FlickrPhoto struct {
 
 func (x *FlickrPhoto) Reset() {
 	*x = FlickrPhoto{}
-	mi := &file_models_proto_msgTypes[4]
+	mi := &file_models_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -424,7 +542,7 @@ func (x *FlickrPhoto) String() string {
 func (*FlickrPhoto) ProtoMessage() {}
 
 func (x *FlickrPhoto) ProtoReflect() protoreflect.Message {
-	mi := &file_models_proto_msgTypes[4]
+	mi := &file_models_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -437,7 +555,7 @@ func (x *FlickrPhoto) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use FlickrPhoto.ProtoReflect.Descriptor instead.
 func (*FlickrPhoto) Descriptor() ([]byte, []int) {
-	return file_models_proto_rawDescGZIP(), []int{4}
+	return file_models_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *FlickrPhoto) GetId() string {
@@ -481,7 +599,7 @@ type CamFileExeStage struct {
 
 func (x *CamFileExeStage) Reset() {
 	*x = CamFileExeStage{}
-	mi := &file_models_proto_msgTypes[5]
+	mi := &file_models_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -493,7 +611,7 @@ func (x *CamFileExeStage) String() string {
 func (*CamFileExeStage) ProtoMessage() {}
 
 func (x *CamFileExeStage) ProtoReflect() protoreflect.Message {
-	mi := &file_models_proto_msgTypes[5]
+	mi := &file_models_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -506,7 +624,7 @@ func (x *CamFileExeStage) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CamFileExeStage.ProtoReflect.Descriptor instead.
 func (*CamFileExeStage) Descriptor() ([]byte, []int) {
-	return file_models_proto_rawDescGZIP(), []int{5}
+	return file_models_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *CamFileExeStage) GetStage() int32 {
@@ -544,7 +662,7 @@ type CamFileExe struct {
 
 func (x *CamFileExe) Reset() {
 	*x = CamFileExe{}
-	mi := &file_models_proto_msgTypes[6]
+	mi := &file_models_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -556,7 +674,7 @@ func (x *CamFileExe) String() string {
 func (*CamFileExe) ProtoMessage() {}
 
 func (x *CamFileExe) ProtoReflect() protoreflect.Message {
-	mi := &file_models_proto_msgTypes[6]
+	mi := &file_models_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -569,7 +687,7 @@ func (x *CamFileExe) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CamFileExe.ProtoReflect.Descriptor instead.
 func (*CamFileExe) Descriptor() ([]byte, []int) {
-	return file_models_proto_rawDescGZIP(), []int{6}
+	return file_models_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *CamFileExe) GetName() string {
@@ -617,7 +735,7 @@ type CamFile struct {
 
 func (x *CamFile) Reset() {
 	*x = CamFile{}
-	mi := &file_models_proto_msgTypes[7]
+	mi := &file_models_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -629,7 +747,7 @@ func (x *CamFile) String() string {
 func (*CamFile) ProtoMessage() {}
 
 func (x *CamFile) ProtoReflect() protoreflect.Message {
-	mi := &file_models_proto_msgTypes[7]
+	mi := &file_models_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -642,7 +760,7 @@ func (x *CamFile) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CamFile.ProtoReflect.Descriptor instead.
 func (*CamFile) Descriptor() ([]byte, []int) {
-	return file_models_proto_rawDescGZIP(), []int{7}
+	return file_models_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *CamFile) GetName() string {
@@ -802,7 +920,7 @@ type CarInspection struct {
 
 func (x *CarInspection) Reset() {
 	*x = CarInspection{}
-	mi := &file_models_proto_msgTypes[8]
+	mi := &file_models_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -814,7 +932,7 @@ func (x *CarInspection) String() string {
 func (*CarInspection) ProtoMessage() {}
 
 func (x *CarInspection) ProtoReflect() protoreflect.Message {
-	mi := &file_models_proto_msgTypes[8]
+	mi := &file_models_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -827,7 +945,7 @@ func (x *CarInspection) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CarInspection.ProtoReflect.Descriptor instead.
 func (*CarInspection) Descriptor() ([]byte, []int) {
-	return file_models_proto_rawDescGZIP(), []int{8}
+	return file_models_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *CarInspection) GetOrganizationId() string {
@@ -1537,7 +1655,7 @@ type CarInspectionFiles struct {
 
 func (x *CarInspectionFiles) Reset() {
 	*x = CarInspectionFiles{}
-	mi := &file_models_proto_msgTypes[9]
+	mi := &file_models_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1549,7 +1667,7 @@ func (x *CarInspectionFiles) String() string {
 func (*CarInspectionFiles) ProtoMessage() {}
 
 func (x *CarInspectionFiles) ProtoReflect() protoreflect.Message {
-	mi := &file_models_proto_msgTypes[9]
+	mi := &file_models_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1562,7 +1680,7 @@ func (x *CarInspectionFiles) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CarInspectionFiles.ProtoReflect.Descriptor instead.
 func (*CarInspectionFiles) Descriptor() ([]byte, []int) {
-	return file_models_proto_rawDescGZIP(), []int{9}
+	return file_models_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *CarInspectionFiles) GetUuid() string {
@@ -1663,7 +1781,7 @@ type CarInspectionFilesA struct {
 
 func (x *CarInspectionFilesA) Reset() {
 	*x = CarInspectionFilesA{}
-	mi := &file_models_proto_msgTypes[10]
+	mi := &file_models_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1675,7 +1793,7 @@ func (x *CarInspectionFilesA) String() string {
 func (*CarInspectionFilesA) ProtoMessage() {}
 
 func (x *CarInspectionFilesA) ProtoReflect() protoreflect.Message {
-	mi := &file_models_proto_msgTypes[10]
+	mi := &file_models_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1688,7 +1806,7 @@ func (x *CarInspectionFilesA) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CarInspectionFilesA.ProtoReflect.Descriptor instead.
 func (*CarInspectionFilesA) Descriptor() ([]byte, []int) {
-	return file_models_proto_rawDescGZIP(), []int{10}
+	return file_models_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *CarInspectionFilesA) GetUuid() string {
@@ -1789,7 +1907,7 @@ type CarInspectionFilesB struct {
 
 func (x *CarInspectionFilesB) Reset() {
 	*x = CarInspectionFilesB{}
-	mi := &file_models_proto_msgTypes[11]
+	mi := &file_models_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1801,7 +1919,7 @@ func (x *CarInspectionFilesB) String() string {
 func (*CarInspectionFilesB) ProtoMessage() {}
 
 func (x *CarInspectionFilesB) ProtoReflect() protoreflect.Message {
-	mi := &file_models_proto_msgTypes[11]
+	mi := &file_models_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1814,7 +1932,7 @@ func (x *CarInspectionFilesB) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CarInspectionFilesB.ProtoReflect.Descriptor instead.
 func (*CarInspectionFilesB) Descriptor() ([]byte, []int) {
-	return file_models_proto_rawDescGZIP(), []int{11}
+	return file_models_proto_rawDescGZIP(), []int{12}
 }
 
 func (x *CarInspectionFilesB) GetUuid() string {
@@ -1913,7 +2031,7 @@ type CarInspectionDeregistration struct {
 
 func (x *CarInspectionDeregistration) Reset() {
 	*x = CarInspectionDeregistration{}
-	mi := &file_models_proto_msgTypes[12]
+	mi := &file_models_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1925,7 +2043,7 @@ func (x *CarInspectionDeregistration) String() string {
 func (*CarInspectionDeregistration) ProtoMessage() {}
 
 func (x *CarInspectionDeregistration) ProtoReflect() protoreflect.Message {
-	mi := &file_models_proto_msgTypes[12]
+	mi := &file_models_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1938,7 +2056,7 @@ func (x *CarInspectionDeregistration) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CarInspectionDeregistration.ProtoReflect.Descriptor instead.
 func (*CarInspectionDeregistration) Descriptor() ([]byte, []int) {
-	return file_models_proto_rawDescGZIP(), []int{12}
+	return file_models_proto_rawDescGZIP(), []int{13}
 }
 
 func (x *CarInspectionDeregistration) GetOrganizationId() string {
@@ -2018,7 +2136,7 @@ type CarInspectionDeregistrationFiles struct {
 
 func (x *CarInspectionDeregistrationFiles) Reset() {
 	*x = CarInspectionDeregistrationFiles{}
-	mi := &file_models_proto_msgTypes[13]
+	mi := &file_models_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2030,7 +2148,7 @@ func (x *CarInspectionDeregistrationFiles) String() string {
 func (*CarInspectionDeregistrationFiles) ProtoMessage() {}
 
 func (x *CarInspectionDeregistrationFiles) ProtoReflect() protoreflect.Message {
-	mi := &file_models_proto_msgTypes[13]
+	mi := &file_models_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2043,7 +2161,7 @@ func (x *CarInspectionDeregistrationFiles) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CarInspectionDeregistrationFiles.ProtoReflect.Descriptor instead.
 func (*CarInspectionDeregistrationFiles) Descriptor() ([]byte, []int) {
-	return file_models_proto_rawDescGZIP(), []int{13}
+	return file_models_proto_rawDescGZIP(), []int{14}
 }
 
 func (x *CarInspectionDeregistrationFiles) GetOrganizationId() string {
@@ -2091,7 +2209,7 @@ type CarInsSheetIchibanCars struct {
 
 func (x *CarInsSheetIchibanCars) Reset() {
 	*x = CarInsSheetIchibanCars{}
-	mi := &file_models_proto_msgTypes[14]
+	mi := &file_models_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2103,7 +2221,7 @@ func (x *CarInsSheetIchibanCars) String() string {
 func (*CarInsSheetIchibanCars) ProtoMessage() {}
 
 func (x *CarInsSheetIchibanCars) ProtoReflect() protoreflect.Message {
-	mi := &file_models_proto_msgTypes[14]
+	mi := &file_models_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2116,7 +2234,7 @@ func (x *CarInsSheetIchibanCars) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CarInsSheetIchibanCars.ProtoReflect.Descriptor instead.
 func (*CarInsSheetIchibanCars) Descriptor() ([]byte, []int) {
-	return file_models_proto_rawDescGZIP(), []int{14}
+	return file_models_proto_rawDescGZIP(), []int{15}
 }
 
 func (x *CarInsSheetIchibanCars) GetOrganizationId() string {
@@ -2185,7 +2303,7 @@ type CarInsSheetIchibanCarsA struct {
 
 func (x *CarInsSheetIchibanCarsA) Reset() {
 	*x = CarInsSheetIchibanCarsA{}
-	mi := &file_models_proto_msgTypes[15]
+	mi := &file_models_proto_msgTypes[16]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2197,7 +2315,7 @@ func (x *CarInsSheetIchibanCarsA) String() string {
 func (*CarInsSheetIchibanCarsA) ProtoMessage() {}
 
 func (x *CarInsSheetIchibanCarsA) ProtoReflect() protoreflect.Message {
-	mi := &file_models_proto_msgTypes[15]
+	mi := &file_models_proto_msgTypes[16]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2210,7 +2328,7 @@ func (x *CarInsSheetIchibanCarsA) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CarInsSheetIchibanCarsA.ProtoReflect.Descriptor instead.
 func (*CarInsSheetIchibanCarsA) Descriptor() ([]byte, []int) {
-	return file_models_proto_rawDescGZIP(), []int{15}
+	return file_models_proto_rawDescGZIP(), []int{16}
 }
 
 func (x *CarInsSheetIchibanCarsA) GetOrganizationId() string {
@@ -2284,7 +2402,7 @@ type IchibanCars struct {
 
 func (x *IchibanCars) Reset() {
 	*x = IchibanCars{}
-	mi := &file_models_proto_msgTypes[16]
+	mi := &file_models_proto_msgTypes[17]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2296,7 +2414,7 @@ func (x *IchibanCars) String() string {
 func (*IchibanCars) ProtoMessage() {}
 
 func (x *IchibanCars) ProtoReflect() protoreflect.Message {
-	mi := &file_models_proto_msgTypes[16]
+	mi := &file_models_proto_msgTypes[17]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2309,7 +2427,7 @@ func (x *IchibanCars) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use IchibanCars.ProtoReflect.Descriptor instead.
 func (*IchibanCars) Descriptor() ([]byte, []int) {
-	return file_models_proto_rawDescGZIP(), []int{16}
+	return file_models_proto_rawDescGZIP(), []int{17}
 }
 
 func (x *IchibanCars) GetId() string {
@@ -2409,7 +2527,7 @@ type DtakoCarsIchibanCars struct {
 
 func (x *DtakoCarsIchibanCars) Reset() {
 	*x = DtakoCarsIchibanCars{}
-	mi := &file_models_proto_msgTypes[17]
+	mi := &file_models_proto_msgTypes[18]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2421,7 +2539,7 @@ func (x *DtakoCarsIchibanCars) String() string {
 func (*DtakoCarsIchibanCars) ProtoMessage() {}
 
 func (x *DtakoCarsIchibanCars) ProtoReflect() protoreflect.Message {
-	mi := &file_models_proto_msgTypes[17]
+	mi := &file_models_proto_msgTypes[18]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2434,7 +2552,7 @@ func (x *DtakoCarsIchibanCars) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DtakoCarsIchibanCars.ProtoReflect.Descriptor instead.
 func (*DtakoCarsIchibanCars) Descriptor() ([]byte, []int) {
-	return file_models_proto_rawDescGZIP(), []int{17}
+	return file_models_proto_rawDescGZIP(), []int{18}
 }
 
 func (x *DtakoCarsIchibanCars) GetIdDtako() string {
@@ -2508,7 +2626,7 @@ type Kudguri struct {
 
 func (x *Kudguri) Reset() {
 	*x = Kudguri{}
-	mi := &file_models_proto_msgTypes[18]
+	mi := &file_models_proto_msgTypes[19]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2520,7 +2638,7 @@ func (x *Kudguri) String() string {
 func (*Kudguri) ProtoMessage() {}
 
 func (x *Kudguri) ProtoReflect() protoreflect.Message {
-	mi := &file_models_proto_msgTypes[18]
+	mi := &file_models_proto_msgTypes[19]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2533,7 +2651,7 @@ func (x *Kudguri) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Kudguri.ProtoReflect.Descriptor instead.
 func (*Kudguri) Descriptor() ([]byte, []int) {
-	return file_models_proto_rawDescGZIP(), []int{18}
+	return file_models_proto_rawDescGZIP(), []int{19}
 }
 
 func (x *Kudguri) GetUuid() string {
@@ -2858,7 +2976,7 @@ type Kudgcst struct {
 
 func (x *Kudgcst) Reset() {
 	*x = Kudgcst{}
-	mi := &file_models_proto_msgTypes[19]
+	mi := &file_models_proto_msgTypes[20]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2870,7 +2988,7 @@ func (x *Kudgcst) String() string {
 func (*Kudgcst) ProtoMessage() {}
 
 func (x *Kudgcst) ProtoReflect() protoreflect.Message {
-	mi := &file_models_proto_msgTypes[19]
+	mi := &file_models_proto_msgTypes[20]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2883,7 +3001,7 @@ func (x *Kudgcst) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Kudgcst.ProtoReflect.Descriptor instead.
 func (*Kudgcst) Descriptor() ([]byte, []int) {
-	return file_models_proto_rawDescGZIP(), []int{19}
+	return file_models_proto_rawDescGZIP(), []int{20}
 }
 
 func (x *Kudgcst) GetUuid() string {
@@ -3149,7 +3267,7 @@ type Kudgfry struct {
 
 func (x *Kudgfry) Reset() {
 	*x = Kudgfry{}
-	mi := &file_models_proto_msgTypes[20]
+	mi := &file_models_proto_msgTypes[21]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3161,7 +3279,7 @@ func (x *Kudgfry) String() string {
 func (*Kudgfry) ProtoMessage() {}
 
 func (x *Kudgfry) ProtoReflect() protoreflect.Message {
-	mi := &file_models_proto_msgTypes[20]
+	mi := &file_models_proto_msgTypes[21]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3174,7 +3292,7 @@ func (x *Kudgfry) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Kudgfry.ProtoReflect.Descriptor instead.
 func (*Kudgfry) Descriptor() ([]byte, []int) {
-	return file_models_proto_rawDescGZIP(), []int{20}
+	return file_models_proto_rawDescGZIP(), []int{21}
 }
 
 func (x *Kudgfry) GetUuid() string {
@@ -3430,7 +3548,7 @@ type Kudgful struct {
 
 func (x *Kudgful) Reset() {
 	*x = Kudgful{}
-	mi := &file_models_proto_msgTypes[21]
+	mi := &file_models_proto_msgTypes[22]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3442,7 +3560,7 @@ func (x *Kudgful) String() string {
 func (*Kudgful) ProtoMessage() {}
 
 func (x *Kudgful) ProtoReflect() protoreflect.Message {
-	mi := &file_models_proto_msgTypes[21]
+	mi := &file_models_proto_msgTypes[22]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3455,7 +3573,7 @@ func (x *Kudgful) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Kudgful.ProtoReflect.Descriptor instead.
 func (*Kudgful) Descriptor() ([]byte, []int) {
-	return file_models_proto_rawDescGZIP(), []int{21}
+	return file_models_proto_rawDescGZIP(), []int{22}
 }
 
 func (x *Kudgful) GetUuid() string {
@@ -3867,7 +3985,7 @@ type Kudgivt struct {
 
 func (x *Kudgivt) Reset() {
 	*x = Kudgivt{}
-	mi := &file_models_proto_msgTypes[22]
+	mi := &file_models_proto_msgTypes[23]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3879,7 +3997,7 @@ func (x *Kudgivt) String() string {
 func (*Kudgivt) ProtoMessage() {}
 
 func (x *Kudgivt) ProtoReflect() protoreflect.Message {
-	mi := &file_models_proto_msgTypes[22]
+	mi := &file_models_proto_msgTypes[23]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3892,7 +4010,7 @@ func (x *Kudgivt) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Kudgivt.ProtoReflect.Descriptor instead.
 func (*Kudgivt) Descriptor() ([]byte, []int) {
-	return file_models_proto_rawDescGZIP(), []int{22}
+	return file_models_proto_rawDescGZIP(), []int{23}
 }
 
 func (x *Kudgivt) GetUuid() string {
@@ -4778,7 +4896,7 @@ type Kudgsir struct {
 
 func (x *Kudgsir) Reset() {
 	*x = Kudgsir{}
-	mi := &file_models_proto_msgTypes[23]
+	mi := &file_models_proto_msgTypes[24]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4790,7 +4908,7 @@ func (x *Kudgsir) String() string {
 func (*Kudgsir) ProtoMessage() {}
 
 func (x *Kudgsir) ProtoReflect() protoreflect.Message {
-	mi := &file_models_proto_msgTypes[23]
+	mi := &file_models_proto_msgTypes[24]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4803,7 +4921,7 @@ func (x *Kudgsir) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Kudgsir.ProtoReflect.Descriptor instead.
 func (*Kudgsir) Descriptor() ([]byte, []int) {
-	return file_models_proto_rawDescGZIP(), []int{23}
+	return file_models_proto_rawDescGZIP(), []int{24}
 }
 
 func (x *Kudgsir) GetUuid() string {
@@ -5103,7 +5221,7 @@ type Uriage struct {
 
 func (x *Uriage) Reset() {
 	*x = Uriage{}
-	mi := &file_models_proto_msgTypes[24]
+	mi := &file_models_proto_msgTypes[25]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5115,7 +5233,7 @@ func (x *Uriage) String() string {
 func (*Uriage) ProtoMessage() {}
 
 func (x *Uriage) ProtoReflect() protoreflect.Message {
-	mi := &file_models_proto_msgTypes[24]
+	mi := &file_models_proto_msgTypes[25]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5128,7 +5246,7 @@ func (x *Uriage) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Uriage.ProtoReflect.Descriptor instead.
 func (*Uriage) Descriptor() ([]byte, []int) {
-	return file_models_proto_rawDescGZIP(), []int{24}
+	return file_models_proto_rawDescGZIP(), []int{25}
 }
 
 func (x *Uriage) GetName() string {
@@ -5195,7 +5313,7 @@ type UriageJisha struct {
 
 func (x *UriageJisha) Reset() {
 	*x = UriageJisha{}
-	mi := &file_models_proto_msgTypes[25]
+	mi := &file_models_proto_msgTypes[26]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5207,7 +5325,7 @@ func (x *UriageJisha) String() string {
 func (*UriageJisha) ProtoMessage() {}
 
 func (x *UriageJisha) ProtoReflect() protoreflect.Message {
-	mi := &file_models_proto_msgTypes[25]
+	mi := &file_models_proto_msgTypes[26]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5220,7 +5338,7 @@ func (x *UriageJisha) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UriageJisha.ProtoReflect.Descriptor instead.
 func (*UriageJisha) Descriptor() ([]byte, []int) {
-	return file_models_proto_rawDescGZIP(), []int{25}
+	return file_models_proto_rawDescGZIP(), []int{26}
 }
 
 func (x *UriageJisha) GetBumon() string {
@@ -5325,7 +5443,7 @@ type Dtakologs struct {
 
 func (x *Dtakologs) Reset() {
 	*x = Dtakologs{}
-	mi := &file_models_proto_msgTypes[26]
+	mi := &file_models_proto_msgTypes[27]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -5337,7 +5455,7 @@ func (x *Dtakologs) String() string {
 func (*Dtakologs) ProtoMessage() {}
 
 func (x *Dtakologs) ProtoReflect() protoreflect.Message {
-	mi := &file_models_proto_msgTypes[26]
+	mi := &file_models_proto_msgTypes[27]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5350,7 +5468,7 @@ func (x *Dtakologs) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Dtakologs.ProtoReflect.Descriptor instead.
 func (*Dtakologs) Descriptor() ([]byte, []int) {
-	return file_models_proto_rawDescGZIP(), []int{26}
+	return file_models_proto_rawDescGZIP(), []int{27}
 }
 
 func (x *Dtakologs) GetOrganizationId() string {
@@ -5794,7 +5912,25 @@ const file_models_proto_rawDesc = "" +
 	"\n" +
 	"created_at\x18\x06 \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\x129\n" +
 	"\n" +
-	"updated_at\x18\a \x01(\v2\x1a.google.protobuf.TimestampR\tupdatedAt\"\xc9\x01\n" +
+	"updated_at\x18\a \x01(\v2\x1a.google.protobuf.TimestampR\tupdatedAt\"\xf4\x03\n" +
+	"\fOAuthAccount\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1e\n" +
+	"\vapp_user_id\x18\x02 \x01(\tR\tappUserId\x12\x1a\n" +
+	"\bprovider\x18\x03 \x01(\tR\bprovider\x12(\n" +
+	"\x10provider_user_id\x18\x04 \x01(\tR\x0eproviderUserId\x12\x19\n" +
+	"\x05email\x18\x05 \x01(\tH\x00R\x05email\x88\x01\x01\x12&\n" +
+	"\faccess_token\x18\x06 \x01(\tH\x01R\vaccessToken\x88\x01\x01\x12(\n" +
+	"\rrefresh_token\x18\a \x01(\tH\x02R\frefreshToken\x88\x01\x01\x12I\n" +
+	"\x10token_expires_at\x18\b \x01(\v2\x1a.google.protobuf.TimestampH\x03R\x0etokenExpiresAt\x88\x01\x01\x129\n" +
+	"\n" +
+	"created_at\x18\t \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\x129\n" +
+	"\n" +
+	"updated_at\x18\n" +
+	" \x01(\v2\x1a.google.protobuf.TimestampR\tupdatedAtB\b\n" +
+	"\x06_emailB\x0f\n" +
+	"\r_access_tokenB\x10\n" +
+	"\x0e_refresh_tokenB\x13\n" +
+	"\x11_token_expires_at\"\xc9\x01\n" +
 	"\x04File\x12\x12\n" +
 	"\x04uuid\x18\x01 \x01(\tR\x04uuid\x12'\n" +
 	"\x0forganization_id\x18\x02 \x01(\tR\x0eorganizationId\x12\x1a\n" +
@@ -6849,51 +6985,55 @@ func file_models_proto_rawDescGZIP() []byte {
 	return file_models_proto_rawDescData
 }
 
-var file_models_proto_msgTypes = make([]protoimpl.MessageInfo, 27)
+var file_models_proto_msgTypes = make([]protoimpl.MessageInfo, 28)
 var file_models_proto_goTypes = []any{
 	(*Organization)(nil),                     // 0: models.Organization
 	(*AppUser)(nil),                          // 1: models.AppUser
 	(*UserOrganization)(nil),                 // 2: models.UserOrganization
-	(*File)(nil),                             // 3: models.File
-	(*FlickrPhoto)(nil),                      // 4: models.FlickrPhoto
-	(*CamFileExeStage)(nil),                  // 5: models.CamFileExeStage
-	(*CamFileExe)(nil),                       // 6: models.CamFileExe
-	(*CamFile)(nil),                          // 7: models.CamFile
-	(*CarInspection)(nil),                    // 8: models.CarInspection
-	(*CarInspectionFiles)(nil),               // 9: models.CarInspectionFiles
-	(*CarInspectionFilesA)(nil),              // 10: models.CarInspectionFilesA
-	(*CarInspectionFilesB)(nil),              // 11: models.CarInspectionFilesB
-	(*CarInspectionDeregistration)(nil),      // 12: models.CarInspectionDeregistration
-	(*CarInspectionDeregistrationFiles)(nil), // 13: models.CarInspectionDeregistrationFiles
-	(*CarInsSheetIchibanCars)(nil),           // 14: models.CarInsSheetIchibanCars
-	(*CarInsSheetIchibanCarsA)(nil),          // 15: models.CarInsSheetIchibanCarsA
-	(*IchibanCars)(nil),                      // 16: models.IchibanCars
-	(*DtakoCarsIchibanCars)(nil),             // 17: models.DtakoCarsIchibanCars
-	(*Kudguri)(nil),                          // 18: models.Kudguri
-	(*Kudgcst)(nil),                          // 19: models.Kudgcst
-	(*Kudgfry)(nil),                          // 20: models.Kudgfry
-	(*Kudgful)(nil),                          // 21: models.Kudgful
-	(*Kudgivt)(nil),                          // 22: models.Kudgivt
-	(*Kudgsir)(nil),                          // 23: models.Kudgsir
-	(*Uriage)(nil),                           // 24: models.Uriage
-	(*UriageJisha)(nil),                      // 25: models.UriageJisha
-	(*Dtakologs)(nil),                        // 26: models.Dtakologs
-	(*timestamppb.Timestamp)(nil),            // 27: google.protobuf.Timestamp
+	(*OAuthAccount)(nil),                     // 3: models.OAuthAccount
+	(*File)(nil),                             // 4: models.File
+	(*FlickrPhoto)(nil),                      // 5: models.FlickrPhoto
+	(*CamFileExeStage)(nil),                  // 6: models.CamFileExeStage
+	(*CamFileExe)(nil),                       // 7: models.CamFileExe
+	(*CamFile)(nil),                          // 8: models.CamFile
+	(*CarInspection)(nil),                    // 9: models.CarInspection
+	(*CarInspectionFiles)(nil),               // 10: models.CarInspectionFiles
+	(*CarInspectionFilesA)(nil),              // 11: models.CarInspectionFilesA
+	(*CarInspectionFilesB)(nil),              // 12: models.CarInspectionFilesB
+	(*CarInspectionDeregistration)(nil),      // 13: models.CarInspectionDeregistration
+	(*CarInspectionDeregistrationFiles)(nil), // 14: models.CarInspectionDeregistrationFiles
+	(*CarInsSheetIchibanCars)(nil),           // 15: models.CarInsSheetIchibanCars
+	(*CarInsSheetIchibanCarsA)(nil),          // 16: models.CarInsSheetIchibanCarsA
+	(*IchibanCars)(nil),                      // 17: models.IchibanCars
+	(*DtakoCarsIchibanCars)(nil),             // 18: models.DtakoCarsIchibanCars
+	(*Kudguri)(nil),                          // 19: models.Kudguri
+	(*Kudgcst)(nil),                          // 20: models.Kudgcst
+	(*Kudgfry)(nil),                          // 21: models.Kudgfry
+	(*Kudgful)(nil),                          // 22: models.Kudgful
+	(*Kudgivt)(nil),                          // 23: models.Kudgivt
+	(*Kudgsir)(nil),                          // 24: models.Kudgsir
+	(*Uriage)(nil),                           // 25: models.Uriage
+	(*UriageJisha)(nil),                      // 26: models.UriageJisha
+	(*Dtakologs)(nil),                        // 27: models.Dtakologs
+	(*timestamppb.Timestamp)(nil),            // 28: google.protobuf.Timestamp
 }
 var file_models_proto_depIdxs = []int32{
-	27, // 0: models.Organization.created_at:type_name -> google.protobuf.Timestamp
-	27, // 1: models.Organization.updated_at:type_name -> google.protobuf.Timestamp
-	27, // 2: models.Organization.deleted_at:type_name -> google.protobuf.Timestamp
-	27, // 3: models.AppUser.created_at:type_name -> google.protobuf.Timestamp
-	27, // 4: models.AppUser.updated_at:type_name -> google.protobuf.Timestamp
-	27, // 5: models.AppUser.deleted_at:type_name -> google.protobuf.Timestamp
-	27, // 6: models.UserOrganization.created_at:type_name -> google.protobuf.Timestamp
-	27, // 7: models.UserOrganization.updated_at:type_name -> google.protobuf.Timestamp
-	8,  // [8:8] is the sub-list for method output_type
-	8,  // [8:8] is the sub-list for method input_type
-	8,  // [8:8] is the sub-list for extension type_name
-	8,  // [8:8] is the sub-list for extension extendee
-	0,  // [0:8] is the sub-list for field type_name
+	28, // 0: models.Organization.created_at:type_name -> google.protobuf.Timestamp
+	28, // 1: models.Organization.updated_at:type_name -> google.protobuf.Timestamp
+	28, // 2: models.Organization.deleted_at:type_name -> google.protobuf.Timestamp
+	28, // 3: models.AppUser.created_at:type_name -> google.protobuf.Timestamp
+	28, // 4: models.AppUser.updated_at:type_name -> google.protobuf.Timestamp
+	28, // 5: models.AppUser.deleted_at:type_name -> google.protobuf.Timestamp
+	28, // 6: models.UserOrganization.created_at:type_name -> google.protobuf.Timestamp
+	28, // 7: models.UserOrganization.updated_at:type_name -> google.protobuf.Timestamp
+	28, // 8: models.OAuthAccount.token_expires_at:type_name -> google.protobuf.Timestamp
+	28, // 9: models.OAuthAccount.created_at:type_name -> google.protobuf.Timestamp
+	28, // 10: models.OAuthAccount.updated_at:type_name -> google.protobuf.Timestamp
+	11, // [11:11] is the sub-list for method output_type
+	11, // [11:11] is the sub-list for method input_type
+	11, // [11:11] is the sub-list for extension type_name
+	11, // [11:11] is the sub-list for extension extendee
+	0,  // [0:11] is the sub-list for field type_name
 }
 
 func init() { file_models_proto_init() }
@@ -6904,11 +7044,11 @@ func file_models_proto_init() {
 	file_models_proto_msgTypes[0].OneofWrappers = []any{}
 	file_models_proto_msgTypes[1].OneofWrappers = []any{}
 	file_models_proto_msgTypes[3].OneofWrappers = []any{}
-	file_models_proto_msgTypes[7].OneofWrappers = []any{}
-	file_models_proto_msgTypes[9].OneofWrappers = []any{}
+	file_models_proto_msgTypes[4].OneofWrappers = []any{}
+	file_models_proto_msgTypes[8].OneofWrappers = []any{}
 	file_models_proto_msgTypes[10].OneofWrappers = []any{}
 	file_models_proto_msgTypes[11].OneofWrappers = []any{}
-	file_models_proto_msgTypes[14].OneofWrappers = []any{}
+	file_models_proto_msgTypes[12].OneofWrappers = []any{}
 	file_models_proto_msgTypes[15].OneofWrappers = []any{}
 	file_models_proto_msgTypes[16].OneofWrappers = []any{}
 	file_models_proto_msgTypes[17].OneofWrappers = []any{}
@@ -6921,13 +7061,14 @@ func file_models_proto_init() {
 	file_models_proto_msgTypes[24].OneofWrappers = []any{}
 	file_models_proto_msgTypes[25].OneofWrappers = []any{}
 	file_models_proto_msgTypes[26].OneofWrappers = []any{}
+	file_models_proto_msgTypes[27].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_models_proto_rawDesc), len(file_models_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   27,
+			NumMessages:   28,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
