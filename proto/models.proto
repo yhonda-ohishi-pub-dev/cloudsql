@@ -21,16 +21,17 @@ message Organization {
   optional google.protobuf.Timestamp deleted_at = 6;  // Soft delete
 }
 
-// AppUser represents an application user linked to IAM authentication
-// DB: app_users (000002_app_users.up.sql)
+// AppUser represents an application user with OAuth2 authentication
+// DB: app_users (000002_app_users.up.sql, 000005_app_users_oauth2.up.sql)
 message AppUser {
   string id = 1;  // UUID
-  string iam_email = 2;  // IAM authentication email
+  optional string email = 2;  // OAuth2 email (nullable, LINE may not provide email)
   string display_name = 3;
-  bool is_superadmin = 4;  // Access to all organizations
-  google.protobuf.Timestamp created_at = 5;
-  google.protobuf.Timestamp updated_at = 6;
-  optional google.protobuf.Timestamp deleted_at = 7;  // Soft delete
+  optional string avatar_url = 4;  // Profile image URL from OAuth2
+  bool is_superadmin = 5;  // Access to all organizations
+  google.protobuf.Timestamp created_at = 6;
+  google.protobuf.Timestamp updated_at = 7;
+  optional google.protobuf.Timestamp deleted_at = 8;  // Soft delete
 }
 
 // UserOrganization represents the many-to-many relationship between users and organizations

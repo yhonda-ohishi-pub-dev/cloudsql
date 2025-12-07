@@ -108,17 +108,18 @@ func (x *Organization) GetDeletedAt() *timestamppb.Timestamp {
 	return nil
 }
 
-// AppUser represents an application user linked to IAM authentication
-// DB: app_users (000002_app_users.up.sql)
+// AppUser represents an application user with OAuth2 authentication
+// DB: app_users (000002_app_users.up.sql, 000005_app_users_oauth2.up.sql)
 type AppUser struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`                             // UUID
-	IamEmail      string                 `protobuf:"bytes,2,opt,name=iam_email,json=iamEmail,proto3" json:"iam_email,omitempty"` // IAM authentication email
+	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`             // UUID
+	Email         *string                `protobuf:"bytes,2,opt,name=email,proto3,oneof" json:"email,omitempty"` // OAuth2 email (nullable, LINE may not provide email)
 	DisplayName   string                 `protobuf:"bytes,3,opt,name=display_name,json=displayName,proto3" json:"display_name,omitempty"`
-	IsSuperadmin  bool                   `protobuf:"varint,4,opt,name=is_superadmin,json=isSuperadmin,proto3" json:"is_superadmin,omitempty"` // Access to all organizations
-	CreatedAt     *timestamppb.Timestamp `protobuf:"bytes,5,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
-	UpdatedAt     *timestamppb.Timestamp `protobuf:"bytes,6,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
-	DeletedAt     *timestamppb.Timestamp `protobuf:"bytes,7,opt,name=deleted_at,json=deletedAt,proto3,oneof" json:"deleted_at,omitempty"` // Soft delete
+	AvatarUrl     *string                `protobuf:"bytes,4,opt,name=avatar_url,json=avatarUrl,proto3,oneof" json:"avatar_url,omitempty"`     // Profile image URL from OAuth2
+	IsSuperadmin  bool                   `protobuf:"varint,5,opt,name=is_superadmin,json=isSuperadmin,proto3" json:"is_superadmin,omitempty"` // Access to all organizations
+	CreatedAt     *timestamppb.Timestamp `protobuf:"bytes,6,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	UpdatedAt     *timestamppb.Timestamp `protobuf:"bytes,7,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	DeletedAt     *timestamppb.Timestamp `protobuf:"bytes,8,opt,name=deleted_at,json=deletedAt,proto3,oneof" json:"deleted_at,omitempty"` // Soft delete
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -160,9 +161,9 @@ func (x *AppUser) GetId() string {
 	return ""
 }
 
-func (x *AppUser) GetIamEmail() string {
-	if x != nil {
-		return x.IamEmail
+func (x *AppUser) GetEmail() string {
+	if x != nil && x.Email != nil {
+		return *x.Email
 	}
 	return ""
 }
@@ -170,6 +171,13 @@ func (x *AppUser) GetIamEmail() string {
 func (x *AppUser) GetDisplayName() string {
 	if x != nil {
 		return x.DisplayName
+	}
+	return ""
+}
+
+func (x *AppUser) GetAvatarUrl() string {
+	if x != nil && x.AvatarUrl != nil {
+		return *x.AvatarUrl
 	}
 	return ""
 }
@@ -5759,18 +5767,22 @@ const file_models_proto_rawDesc = "" +
 	"updated_at\x18\x05 \x01(\v2\x1a.google.protobuf.TimestampR\tupdatedAt\x12>\n" +
 	"\n" +
 	"deleted_at\x18\x06 \x01(\v2\x1a.google.protobuf.TimestampH\x00R\tdeletedAt\x88\x01\x01B\r\n" +
-	"\v_deleted_at\"\xc3\x02\n" +
+	"\v_deleted_at\"\xfe\x02\n" +
 	"\aAppUser\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1b\n" +
-	"\tiam_email\x18\x02 \x01(\tR\biamEmail\x12!\n" +
-	"\fdisplay_name\x18\x03 \x01(\tR\vdisplayName\x12#\n" +
-	"\ris_superadmin\x18\x04 \x01(\bR\fisSuperadmin\x129\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x19\n" +
+	"\x05email\x18\x02 \x01(\tH\x00R\x05email\x88\x01\x01\x12!\n" +
+	"\fdisplay_name\x18\x03 \x01(\tR\vdisplayName\x12\"\n" +
 	"\n" +
-	"created_at\x18\x05 \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\x129\n" +
+	"avatar_url\x18\x04 \x01(\tH\x01R\tavatarUrl\x88\x01\x01\x12#\n" +
+	"\ris_superadmin\x18\x05 \x01(\bR\fisSuperadmin\x129\n" +
 	"\n" +
-	"updated_at\x18\x06 \x01(\v2\x1a.google.protobuf.TimestampR\tupdatedAt\x12>\n" +
+	"created_at\x18\x06 \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\x129\n" +
 	"\n" +
-	"deleted_at\x18\a \x01(\v2\x1a.google.protobuf.TimestampH\x00R\tdeletedAt\x88\x01\x01B\r\n" +
+	"updated_at\x18\a \x01(\v2\x1a.google.protobuf.TimestampR\tupdatedAt\x12>\n" +
+	"\n" +
+	"deleted_at\x18\b \x01(\v2\x1a.google.protobuf.TimestampH\x02R\tdeletedAt\x88\x01\x01B\b\n" +
+	"\x06_emailB\r\n" +
+	"\v_avatar_urlB\r\n" +
 	"\v_deleted_at\"\x8d\x02\n" +
 	"\x10UserOrganization\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x17\n" +
