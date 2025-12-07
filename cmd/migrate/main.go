@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strconv"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -62,11 +63,18 @@ var versionCmd = &cobra.Command{
 	},
 }
 
+var forceVersion int
+
 var forceCmd = &cobra.Command{
 	Use:   "force [version]",
 	Short: "Force set migration version",
 	Args:  cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
+		v, err := strconv.Atoi(args[0])
+		if err != nil {
+			return fmt.Errorf("invalid version: %w", err)
+		}
+		forceVersion = v
 		return runMigration("force")
 	},
 }
@@ -238,8 +246,10 @@ func runMigration(action string) error {
 		fmt.Printf("Current version: %d (dirty: %v)\n", version, dirty)
 
 	case "force":
-		// Force version would be handled differently
-		fmt.Println("Force version not implemented in this example")
+		if err := migrator.Force(forceVersion); err != nil {
+			return fmt.Errorf("failed to force version: %w", err)
+		}
+		fmt.Printf("Forced migration version to %d\n", forceVersion)
 	}
 
 	return nil

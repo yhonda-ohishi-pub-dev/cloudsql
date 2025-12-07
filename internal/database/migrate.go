@@ -70,8 +70,16 @@ func NewMigrator(db *sql.DB, dbType DBType, migrationsPath string) (*Migrator, e
 }
 
 // Up runs all pending migrations
+// 失敗時は前のバージョンにrollbackしてdirty状態を防ぐ
 func (m *Migrator) Up() error {
+	// 現在のバージョンを記録
+	prevVersion, _, _ := m.migrate.Version()
+
 	if err := m.migrate.Up(); err != nil && err != migrate.ErrNoChange {
+		// 失敗時は前のバージョンにforceして dirty を解除
+		if prevVersion > 0 {
+			_ = m.migrate.Force(int(prevVersion))
+		}
 		return fmt.Errorf("failed to run migrations: %w", err)
 	}
 	return nil
